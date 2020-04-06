@@ -41,6 +41,6 @@ jobs:
           name: Run tests
           command: yarn test --runInBand --verbose --coverage=true --forceExit --detectOpenHandles
 
-      # - run:
-      #     name: Run coveralls
-      #     command: yarn coveralls
+      - run:
+          name: Run coveralls
+          command: cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js

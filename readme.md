@@ -1,0 +1,1 @@
+[![Coverage Status](https://coveralls.io/repos/github/onaio/express-server/badge.svg?branch=master)](https://coveralls.io/github/onaio/express-server?branch=master)
