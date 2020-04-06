@@ -49,3 +49,5 @@ export const EXPRESS_SESSION_PATH = '/';
 export type EXPRESS_SESSION_PATH = typeof EXPRESS_SESSION_PATH;
 
 export const EXPRESS_REACT_BUILD_PATH = join(__dirname, 'build');
+
+export const EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL = 'http://localhost:3000/oauth/callback/opensrp';
