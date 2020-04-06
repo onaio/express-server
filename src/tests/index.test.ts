@@ -92,7 +92,7 @@ describe('src/index.ts', () => {
       .get('/')
       .expect(200)
       .expect('Do you mind')
-      .end((err: Error, _: Express.Response) => {
+      .end((err: Error, _: request.Response) => {
         if (err) {
           throw err;
         }
