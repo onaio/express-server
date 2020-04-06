@@ -4,4 +4,23 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
+  testEnvironment: 'node',
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}"
+  ],
+  coveragePathIgnorePatterns:[
+    "src/tests"
+  ],
+  coverageReporters:[
+    'lcov',
+    'html'
+  ],
+  coverageThreshold: {
+    "global": {
+      "branches": 80,
+      "functions": 85,
+      "lines": 85,
+      "statements": 90
+    }
+  }
 };
