@@ -7,7 +7,21 @@
     "dev:start": "npm-run-all build start",
     "dev": "nodemon --watch src -e ts,ejs --exec npm run dev:start",
     "start": "node dist",
-    "test": "jest"
+    "test": "jest",
+    "lint": "tsc --noEmit && eslint src/**/*.{js,ts} --quiet"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsc --noEmit && lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@onaio/gatekeeper": "^0.0.18",
@@ -44,11 +58,17 @@
     "@types/seamless-immutable": "^7.1.11",
     "@types/session-file-store": "^1.2.1",
     "@types/supertest": "^2.0.8",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
     "coveralls": "^3.0.11",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
     "jest": "^25.1.0",
     "nock": "^12.0.1",
     "nodemon": "^2.0.2",
     "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.4",
     "rimraf": "^3.0.1",
     "supertest": "^4.0.2",
     "ts-jest": "^25.2.1"
