@@ -1,18 +1,15 @@
 import { join } from 'path';
 
-export const EXPRESS_OPENSRP_ACCESS_TOKEN_URL =
-  'http://reveal-stage.smartregister.org/opensrp/oauth/token';
+export const EXPRESS_OPENSRP_ACCESS_TOKEN_URL = 'http://reveal-stage.smartregister.org/opensrp/oauth/token';
 export type EXPRESS_OPENSRP_ACCESS_TOKEN_URL = typeof EXPRESS_OPENSRP_ACCESS_TOKEN_URL;
 
-export const EXPRESS_OPENSRP_AUTHORIZATION_URL =
-  'http://reveal-stage.smartregister.org/opensrp/oauth/authorize';
+export const EXPRESS_OPENSRP_AUTHORIZATION_URL = 'http://reveal-stage.smartregister.org/opensrp/oauth/authorize';
 export type EXPRESS_OPENSRP_AUTHORIZATION_URL = typeof EXPRESS_OPENSRP_AUTHORIZATION_URL;
 
 export const EXPRESS_OPENSRP_CALLBACK_URL = 'http://localhost:3000/oauth/callback/OpenSRP/';
 export type EXPRESS_OPENSRP_CALLBACK_URL = typeof EXPRESS_OPENSRP_CALLBACK_URL;
 
-export const EXPRESS_OPENSRP_USER_URL =
-  'http://reveal-stage.smartregister.org/opensrp/user-details';
+export const EXPRESS_OPENSRP_USER_URL = 'http://reveal-stage.smartregister.org/opensrp/user-details';
 export type EXPRESS_OPENSRP_USER_URL = typeof EXPRESS_OPENSRP_USER_URL;
 
 export const EXPRESS_SESSION_FILESTORE_PATH = '/tmp/express-sessions';
