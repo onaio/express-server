@@ -39,7 +39,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: yarn test --runInBand --verbose --coverage=true --forceExit --detectOpenHandles
+          command: yarn test:coverage --runInBand --verbose --forceExit --detectOpenHandles
 
       - run:
           name: Run coveralls

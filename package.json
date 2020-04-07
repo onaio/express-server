@@ -8,6 +8,7 @@
     "dev": "nodemon --watch src -e ts,ejs --exec npm run dev:start",
     "start": "node dist",
     "test": "jest",
+    "test:coverage": "jest --coverage --no-cache",
     "lint": "tsc --noEmit && eslint src/**/*.{js,ts} --quiet"
   },
   "husky": {
