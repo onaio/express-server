@@ -7,12 +7,4 @@ module.exports = {
     testEnvironment: 'node',
     collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/tests/', '!src/index.ts'],
     coverageReporters: ['lcov', 'html'],
-    coverageThreshold: {
-        global: {
-            branches: 80,
-            functions: 85,
-            lines: 85,
-            statements: 90,
-        },
-    },
 };
