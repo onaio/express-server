@@ -4,6 +4,11 @@ import path from 'path';
 // initialize configuration
 dotenv.config();
 
+// TODO - Generify the codebase issue #3.
+/** code naming and definitions suggest that the express server can
+ * only be used for an openSRP backend app. This is not actually true
+ * since the express backend is meant to be generic and api-agnostic
+ */
 export const EXPRESS_OPENSRP_ACCESS_TOKEN_URL =
     process.env.EXPRESS_OPENSRP_ACCESS_TOKEN_URL || 'https://reveal-stage.smartregister.org/opensrp/oauth/token';
 export type EXPRESS_OPENSRP_ACCESS_TOKEN_URL = typeof EXPRESS_OPENSRP_ACCESS_TOKEN_URL;
