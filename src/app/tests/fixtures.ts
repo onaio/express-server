@@ -2,7 +2,7 @@
 export const parsedApiResponse = {
     preferredName: 'Superset User',
     roles: ['Provider'],
-    userName: 'superset-user',
+    username: 'superset-user',
 };
 
 export const oauthState = {
@@ -17,7 +17,7 @@ export const oauthState = {
             },
             preferredName: 'Superset User',
             roles: ['Provider'],
-            userName: 'superset-user',
+            username: 'superset-user',
         },
         success: true,
     },
@@ -33,7 +33,7 @@ export const oauthState = {
             },
             preferredName: 'Superset User',
             roles: ['Provider'],
-            userName: 'superset-user',
+            username: 'superset-user',
         },
         user: {
             email: '',
