@@ -38,8 +38,8 @@ const opensrpAuth = new ClientOAuth2({
     scopes: ['read', 'write'],
     state: EXPRESS_OPENSRP_OAUTH_STATE,
 });
-const loginURL = EXPRESS_SESSION_LOGIN_URL || '/';
-const sessionName = EXPRESS_SESSION_NAME || 'session';
+const loginURL = EXPRESS_SESSION_LOGIN_URL;
+const sessionName = EXPRESS_SESSION_NAME;
 
 const app = express();
 
@@ -183,7 +183,9 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
         const searchParams = querystring.parse(searchString);
         nextPath = searchParams.next as string | undefined;
     }
-    req.session.preloadedState ? res.redirect(nextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
+    const localNextPath = nextPath ? nextPath : '/';
+
+    req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
 };
 
 const logout = (req: express.Request, res: express.Response) => {

@@ -5,6 +5,7 @@ import request from 'supertest';
 import { EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL, EXPRESS_SESSION_LOGIN_URL } from '../../configs/envs';
 import app from '../index';
 import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
+import { EXPRESS_FRONTEND_LOGIN_URL } from '../../configs/envs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { extractCookies } = require('./utils');
@@ -162,6 +163,33 @@ describe('src/index.ts', () => {
             });
     });
 
+    it('Accessing login url when next path is undefined and logged in', (done) => {
+        // when logged in and nextPath is not provided, redirect to home
+        request(app)
+            .get('/login')
+            .set('cookie', sessionString)
+            .expect(302)
+            .end((err: Error, res) => {
+                panic(err, done);
+                expect(res.header.location).toEqual('/');
+                expect(res.redirect).toBeTruthy();
+                done();
+            });
+    });
+        it('Accessing login url when next Path is defined and logged in', (done) => {
+        // when logged in and nextPath is not provided, redirect to home
+        request(app)
+            .get('/login?next=%2Fteams')
+            .set('cookie', sessionString)
+            .expect(302)
+            .end((err: Error, res) => {
+                panic(err, done);
+                expect(res.header.location).toEqual('/teams');
+                expect(res.redirect).toBeTruthy();
+                done();
+            });
+    });
+
     it('logs user out with cookie', (done) => {
         request(app)
             .get('/logout')
@@ -178,6 +206,19 @@ describe('src/index.ts', () => {
                         expect(r.body).toEqual(unauthorized);
                         done();
                     });
+            });
+    });
+
+    it('Accessing login url when you are logged out', (done) => {
+        // this returns express frontend login url when logged out
+        request(app)
+            .get('/login')
+            .expect(302)
+            .end((err: Error, res) => {
+                panic(err, done);
+                expect(res.header.location).toEqual(EXPRESS_FRONTEND_LOGIN_URL);
+                expect(res.redirect).toBeTruthy();
+                done();
             });
     });
 });
