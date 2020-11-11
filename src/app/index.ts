@@ -4,6 +4,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import session from 'express-session';
+import {MemoryStore} from 'express-session';
 import helmet from 'helmet';
 import { trimStart } from 'lodash';
 import path from 'path';
@@ -27,6 +28,7 @@ import {
     EXPRESS_SESSION_NAME,
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
+    EXPRESS_SESSION_STORE,
 } from '../configs/envs';
 
 const opensrpAuth = new ClientOAuth2({
@@ -46,10 +48,14 @@ const app = express();
 app.use(compression()); // Compress all routes
 app.use(helmet()); // protect against well known vulnerabilities
 
-const FileStore = sessionFileStore(session);
-const fileStoreOptions = {
-    path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
-};
+let sessionStore = null;
+if (EXPRESS_SESSION_STORE == 'FileStore') {
+    const FileStore = sessionFileStore(session);
+    const fileStoreOptions = {
+        path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
+    };
+    sessionStore = new FileStore(fileStoreOptions);
+}
 
 let nextPath: string | undefined;
 
@@ -63,7 +69,7 @@ const sess = {
     resave: true,
     saveUninitialized: true,
     secret: EXPRESS_SESSION_SECRET || 'hunter2',
-    store: new FileStore(fileStoreOptions),
+    store: sessionStore === null ? new MemoryStore() : sessionStore,
 };
 
 if (app.get('env') === 'production') {
