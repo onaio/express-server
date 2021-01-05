@@ -167,14 +167,14 @@ const refreshToken = (req: express.Request, res: express.Response) => {
         return res.json('Access token or Refresh token not found');
     }
     // re-create an access token instance
-    const token = provider.createToken(accessToken)
+    const token = provider.createToken(accessToken, refreshToken)
     return token.refresh()
         .then(oauthRes => {
             const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
             return res.json(preloadedState)
         })
         .catch((error) => {
-            return res.json(error.message || 'Failed to refresh token');
+            return res.json({error: error.message || 'Failed to refresh token'});
         });
 }
 
