@@ -118,7 +118,7 @@ const processUserInfo = (
     res: express.Response,
     authDetails: dictionary,
     userDetails?: dictionary,
-    isRefresh: boolean = false
+    isRefresh?: boolean
 ) => {
     let userInfo = userDetails
     if(!userDetails) {
