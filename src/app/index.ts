@@ -113,7 +113,13 @@ const oauthLogin = (_: express.Request, res: express.Response) => {
     res.redirect(uri);
 };
 
-const processUserInfo = (req: express.Request, res: express.Response, authDetails: dictionary, userDetails?: dictionary) => {
+const processUserInfo = (
+    req: express.Request,
+    res: express.Response,
+    authDetails: dictionary,
+    userDetails?: dictionary,
+    isRefresh: boolean = false
+) => {
     let userInfo = userDetails
     if(!userDetails) {
         // get user details from session. will be needed when refreshing token
@@ -135,6 +141,10 @@ const processUserInfo = (req: express.Request, res: express.Response, authDetail
         req.session.cookie.maxAge = expireAfterMs;
         // you have to save the session manually for POST requests like this one
         req.session.save(() => void 0);
+        // when refreshing token we only need the preloaded state
+        if(isRefresh) {
+            return preloadedState
+        }
         if (nextPath) {
             /** reset nextPath to undefined; its value once set should only be used
              * once and invalidated after being used, which is here. Failing to invalidate the previous value
@@ -149,23 +159,22 @@ const processUserInfo = (req: express.Request, res: express.Response, authDetail
     }
 }
 
-const refreshToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const refreshToken = (req: express.Request, res: express.Response) => {
     const provider = opensrpAuth;
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
     if(!accessToken && !refreshToken) {
-        return res.json({ error: 'Refresh token is expired' });
+        return res.json('Access token or Refresh token not found');
     }
     // re-create an access token instance
-    const token = provider.createToken(accessToken, refreshToken)
-    // Refresh the token
-    token.refresh()
-        .then(user => {
-            console.log(user)
-            processUserInfo(req, res, user.data);
+    const token = provider.createToken(accessToken)
+    return token.refresh()
+        .then(oauthRes => {
+            const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
+            return res.json(preloadedState)
         })
-        .catch((e: Error) => {
-            next(e);
+        .catch((error) => {
+            return res.json(error.message || 'Failed to refresh token');
         });
 }
 
