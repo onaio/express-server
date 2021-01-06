@@ -164,7 +164,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
     if(!accessToken && !refreshToken) {
-        return res.json('Access token or Refresh token not found');
+        return res.json({error: 'Access token or Refresh token not found'});
     }
     // re-create an access token instance
     const token = provider.createToken(accessToken, refreshToken)
