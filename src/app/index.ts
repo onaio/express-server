@@ -163,7 +163,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     const provider = opensrpAuth;
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
-    if(!accessToken && !refreshToken) {
+    if(!accessToken || !refreshToken) {
         return res.json({error: 'Access token or Refresh token not found'});
     }
     // re-create an access token instance
