@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
+import MockDate from 'mockdate';
 import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
 import request from 'supertest';
@@ -42,6 +43,7 @@ jest.mock('client-oauth2', () => {
             return {
                 access_token: '64dc9918-fa1c-435d-9a97-ddb4aa1a8316',
                 expires_in: 3221,
+                refresh_expires_in: 2592000,
                 refresh_token: '808f060c-be93-459e-bd56-3074d9b96229',
                 scope: 'read write',
                 token_type: 'bearer',
@@ -55,6 +57,9 @@ jest.mock('client-oauth2', () => {
 
         public sign(_: any) {
             return { url: 'http://someUrl.com' };
+        }
+        public async refresh() {
+            return {data: this.data};
         }
     }
 
@@ -72,6 +77,9 @@ jest.mock('client-oauth2', () => {
             this.options = options;
             this.request = req;
         }
+        public createToken = (() => {
+            return this.token
+        });
     };
 });
 
@@ -112,15 +120,13 @@ describe('src/index.ts', () => {
     });
 
     it('E2E: oauth/opensrp/callback works correctly', async (done) => {
+        MockDate.set('1/1/2020');
         JSON.parse = (body) => {
             if (body === '{}') {
                 return parsedApiResponse;
             }
         };
         nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
-
-        /** PS: This test will start failing on  Fri, 14 May 3019 11:55:39 GMT */
-        jest.spyOn(global.Date, 'now').mockImplementationOnce(() => new Date('3019-05-14T11:01:58.135Z').valueOf());
 
         request(app)
             .get(oauthCallbackUri)
@@ -133,7 +139,7 @@ describe('src/index.ts', () => {
                 cookie = extractCookies(res.header);
                 // expect that cookie will expire in: now(a date mocked to be in the future) + token.expires_in
                 expect(cookie['reveal-session'].flags).toEqual({
-                    Expires: 'Fri, 14 May 3019 11:55:39 GMT',
+                    Expires: 'Fri, 31 Jan 2020 00:00:00 GMT',
                     HttpOnly: true,
                     Path: '/',
                 });
@@ -152,6 +158,7 @@ describe('src/index.ts', () => {
     });
 
     it('/oauth/state works correctly with cookie', (done) => {
+        MockDate.set('1/1/2020');
         request(app)
             .get('/oauth/state')
             .set('cookie', sessionString)
@@ -161,6 +168,28 @@ describe('src/index.ts', () => {
                 expect(res.body).toEqual(oauthState);
                 done();
             });
+    });
+
+    it('/refresh/token works correctly', (done) => {
+        MockDate.set('1/1/2020');
+        // when no session is found
+        request(app)
+            .get('/refresh/token')
+            .end((err: Error, res: request.Response) => {
+                panic(err, done);
+                expect(res.body).toEqual({error: 'Access token or Refresh token not found'});
+                done();
+            });
+
+        // call refresh token
+        request(app)
+        .get('/refresh/token')
+        .set('cookie', sessionString)
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.body).toEqual(oauthState);
+            done();
+        });
     });
 
     it('Accessing login url when next path is undefined and logged in', (done) => {

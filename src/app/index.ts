@@ -29,6 +29,8 @@ import {
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
 
+type dictionary = { [key: string]: any };
+
 const opensrpAuth = new ClientOAuth2({
     accessTokenUri: EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
     authorizationUri: EXPRESS_OPENSRP_AUTHORIZATION_URL,
@@ -111,6 +113,71 @@ const oauthLogin = (_: express.Request, res: express.Response) => {
     res.redirect(uri);
 };
 
+const processUserInfo = (
+    req: express.Request,
+    res: express.Response,
+    authDetails: dictionary,
+    userDetails?: dictionary,
+    isRefresh?: boolean
+) => {
+    let userInfo = userDetails
+    if(!userDetails) {
+        // get user details from session. will be needed when refreshing token
+        userInfo = req.session.preloadedState?.session?.extraData || {};
+    }
+    userInfo.oAuth2Data = authDetails;
+    const sessionState = getOpenSRPUserInfo(userInfo);
+    if (sessionState) {
+        const gatekeeperState = {
+            success: true,
+            result: sessionState.extraData,
+        };
+        const preloadedState = {
+            gatekeeper: gatekeeperState,
+            session: sessionState,
+        };
+        req.session.preloadedState = preloadedState;
+        const expireAfterMs = sessionState.extraData.oAuth2Data.refresh_expires_in * 1000;
+        req.session.cookie.maxAge = expireAfterMs;
+        // you have to save the session manually for POST requests like this one
+        req.session.save(() => void 0);
+        // when refreshing token we only need the preloaded state
+        if(isRefresh) {
+            return preloadedState
+        }
+        if (nextPath) {
+            /** reset nextPath to undefined; its value once set should only be used
+             * once and invalidated after being used, which is here. Failing to invalidate the previous value
+             * would result in the user being redirected to the same url the next time they pass through
+             * here irrespective of whether they should or shouldn't
+             */
+            const localNextPath = nextPath;
+            nextPath = undefined;
+            return res.redirect(localNextPath);
+        }
+        return res.redirect(EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL);
+    }
+}
+
+const refreshToken = (req: express.Request, res: express.Response) => {
+    const provider = opensrpAuth;
+    const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+    const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
+    if(!accessToken || !refreshToken) {
+        return res.json({error: 'Access token or Refresh token not found'});
+    }
+    // re-create an access token instance
+    const token = provider.createToken(accessToken, refreshToken)
+    return token.refresh()
+        .then(oauthRes => {
+            const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
+            return res.json(preloadedState)
+        })
+        .catch((error) => {
+            return res.json({error: error.message || 'Failed to refresh token'});
+        });
+}
+
 const oauthCallback = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const provider = opensrpAuth;
     provider.code
@@ -128,35 +195,7 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
                         next(error); // pass error to express
                     }
                     const apiResponse = JSON.parse(body);
-                    apiResponse.oAuth2Data = user.data;
-
-                    const sessionState = getOpenSRPUserInfo(apiResponse);
-                    if (sessionState) {
-                        const gatekeeperState = {
-                            success: true,
-                            result: sessionState.extraData,
-                        };
-                        const preloadedState = {
-                            gatekeeper: gatekeeperState,
-                            session: sessionState,
-                        };
-                        req.session.preloadedState = preloadedState;
-                        const expireAfterMs = sessionState.extraData.oAuth2Data.expires_in * 1000;
-                        req.session.cookie.maxAge = expireAfterMs;
-                        // you have to save the session manually for POST requests like this one
-                        req.session.save(() => void 0);
-                        if (nextPath) {
-                            /** reset nextPath to undefined; its value once set should only be used
-                             * once and invalidated after being used, which is here. Failing to invalidate the previous value
-                             * would result in the user being redirected to the same url the next time they pass through
-                             * here irrespective of whether they should or shouldn't
-                             */
-                            const localNextPath = nextPath;
-                            nextPath = undefined;
-                            return res.redirect(localNextPath);
-                        }
-                        return res.redirect(EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL);
-                    }
+                    processUserInfo(req, res, user.data, apiResponse);
                 },
             );
         })
@@ -199,6 +238,7 @@ const router = express.Router();
 router.use('/oauth/opensrp', oauthLogin);
 router.use('/oauth/callback/OpenSRP', oauthCallback);
 router.use('/oauth/state', oauthState);
+router.use('/refresh/token', refreshToken);
 // handle login
 router.use(loginURL, loginRedirect);
 // logout
