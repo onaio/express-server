@@ -6,6 +6,7 @@ import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import { trimStart } from 'lodash';
+import morgan from 'morgan';
 import path from 'path';
 import querystring from 'querystring';
 import request from 'request';
@@ -29,7 +30,6 @@ import {
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
-var morgan = require('morgan');
 
 
 type dictionary = { [key: string]: any };
