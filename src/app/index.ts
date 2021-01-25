@@ -11,6 +11,7 @@ import querystring from 'querystring';
 import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
+import { winstonStream } from '../configs/winston';
 import {
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
@@ -28,6 +29,8 @@ import {
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
+var morgan = require('morgan');
+
 
 type dictionary = { [key: string]: any };
 
@@ -71,6 +74,7 @@ const sess = {
 if (app.get('env') === 'production') {
     app.set('trust proxy', 1); // trust first proxy
     sess.cookie.secure = true; // serve secure cookies
+    app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 }
 
 app.use(cookieParser());
