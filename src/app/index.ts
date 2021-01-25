@@ -11,7 +11,7 @@ import querystring from 'querystring';
 import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
-import { winstonStream } from '../configs/winston';
+import { winstonLogger, winstonStream } from '../configs/winston';
 import {
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
@@ -177,7 +177,8 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
             return res.json(preloadedState)
         })
-        .catch((error) => {
+        .catch((error: Error) => {
+            winstonLogger.error(`${error.message}-${JSON.stringify(error.stack)}`);
             return res.json({error: error.message || 'Failed to refresh token'});
         });
 }
@@ -204,6 +205,7 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
             );
         })
         .catch((e: Error) => {
+            winstonLogger.error(`${e.message}-${JSON.stringify(e.stack)}`);
             next(e);
         });
 };
@@ -258,6 +260,7 @@ router.use('*', renderer);
 app.use(router);
 
 app.use((err: HttpException, _: express.Request, res: express.Response, __: express.NextFunction) => {
+    winstonLogger.error(`${err.statusCode || 500} - ${err.message}-${JSON.stringify(err.stack)}`);
     handleError(err, res);
 });
 
