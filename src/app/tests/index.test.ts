@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/camelcase */
+import fetch from 'node-fetch';
 import MockDate from 'mockdate';
 import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
 import request from 'supertest';
-import { EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL, EXPRESS_SESSION_LOGIN_URL } from '../../configs/envs';
+import {
+    EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
+    EXPRESS_SESSION_LOGIN_URL,
+    EXPRESS_KEYCLOAK_LOGOUT_URL,
+    EXPRESS_SERVER_LOGOUT_URL,
+    EXPRESS_OPENSRP_LOGOUT_URL,
+    EXPRESS_FRONTEND_LOGIN_URL
+} from '../../configs/envs';
 import app from '../index';
 import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
-import { EXPRESS_FRONTEND_LOGIN_URL } from '../../configs/envs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { extractCookies } = require('./utils');
@@ -21,6 +28,7 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
+jest.mock('node-fetch');
 
 jest.mock('client-oauth2', () => {
     class CodeFlow {
@@ -215,6 +223,50 @@ describe('src/index.ts', () => {
                 panic(err, done);
                 expect(res.header.location).toEqual('/teams');
                 expect(res.redirect).toBeTruthy();
+                done();
+            });
+    });
+
+    it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
+        MockDate.set('1/1/2020');
+        JSON.parse = (body) => {
+            if (body === '{}') {
+                return 'string';
+            }
+        };
+        nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
+
+        request(app)
+            .get(oauthCallbackUri)
+            .end((err, res: request.Response) => {
+                panic(err, done);
+                expect(res.header.location).toEqual('/logout?serverLogout=true');
+                expect(res.notFound).toBeFalsy();
+                expect(res.redirect).toBeTruthy();
+                done();
+            });
+    });
+
+    it('logs user out from opensrp and calls keycloak', (done) => {
+        (fetch as any).mockImplementation(()=> Promise.resolve('successfull'));
+        request(app)
+            .get('/logout?serverLogout=true')
+            .set('Cookie', sessionString)
+            .end((err, res: request.Response) => {
+                panic(err, done);
+                expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`);
+                expect(res.redirect).toBeTruthy();
+                expect(fetch).toHaveBeenCalledTimes(1);
+                expect(fetch).toHaveBeenCalledWith(
+                    EXPRESS_OPENSRP_LOGOUT_URL,
+                    {
+                        "headers": {
+                            "accept": "application/json",
+                            "authorization": "Bearer 64dc9918-fa1c-435d-9a97-ddb4aa1a8316",
+                            "contentType": "application/json;charset=UTF-8"
+                        },
+                        "method": "GET"
+                    })
                 done();
             });
     });
