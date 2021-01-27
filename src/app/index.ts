@@ -198,8 +198,13 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
                     if (error) {
                         next(error); // pass error to express
                     }
-                    const apiResponse = JSON.parse(body);
-                    processUserInfo(req, res, user.data, apiResponse);
+                    let apiResponse: dictionary;
+                    try {
+                        apiResponse = JSON.parse(body);
+                        processUserInfo(req, res, user.data, apiResponse);
+                    } catch (_) {
+                        res.redirect('/logout?serverLogout=true');
+                    }
                 },
             );
         })
