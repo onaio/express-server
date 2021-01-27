@@ -15,14 +15,17 @@ import { parse } from 'url';
 import {
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
+    EXPRESS_KEYCLOAK_LOGOUT_URL,
     EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
     EXPRESS_OPENSRP_AUTHORIZATION_URL,
     EXPRESS_OPENSRP_CALLBACK_URL,
     EXPRESS_OPENSRP_CLIENT_ID,
     EXPRESS_OPENSRP_CLIENT_SECRET,
+    EXPRESS_OPENSRP_LOGOUT_URL,
     EXPRESS_OPENSRP_OAUTH_STATE,
     EXPRESS_OPENSRP_USER_URL,
     EXPRESS_REACT_BUILD_PATH,
+    EXPRESS_SERVER_LOGOUT_URL,
     EXPRESS_SESSION_FILESTORE_PATH,
     EXPRESS_SESSION_LOGIN_URL,
     EXPRESS_SESSION_NAME,
@@ -228,12 +231,9 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
     req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
 };
 
-const logout = async(req: express.Request, res: express.Response, next:express.NextFunction) => {
+const logout = async (req: express.Request, res: express.Response) => {
     if(req.query.serverLogout) {
         const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
-        const openSRPLogout = 'https://reveal-stage.smartregister.org/opensrp/logout.do';
-        const keycloakLogout = 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
-        const redirectURI = 'http://localhost:3000/logout'
         const payload = {
             headers: {
                 accept: 'application/json',
@@ -243,9 +243,9 @@ const logout = async(req: express.Request, res: express.Response, next:express.N
             method: 'GET',
         }
         if(accessToken) {
-            await fetch(openSRPLogout, payload);
+            await fetch(EXPRESS_OPENSRP_LOGOUT_URL, payload);
         }
-        const keycloakLogoutFullPath = `${keycloakLogout}?redirect_uri=${redirectURI}`
+        const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`
         res.redirect(keycloakLogoutFullPath);
     } else {
         req.session.destroy(() => void 0);
@@ -264,6 +264,7 @@ router.use('/refresh/token', refreshToken);
 router.use(loginURL, loginRedirect);
 // logout
 router.use('/logout', logout);
+
 // render React app
 router.use('^/$', renderer);
 // other static resources should just be served as they are
