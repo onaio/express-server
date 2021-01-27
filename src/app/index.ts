@@ -6,6 +6,7 @@ import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import { trimStart } from 'lodash';
+import fetch from 'node-fetch';
 import path from 'path';
 import querystring from 'querystring';
 import request from 'request';
@@ -227,10 +228,30 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
     req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
 };
 
-const logout = (req: express.Request, res: express.Response) => {
-    req.session.destroy(() => void 0);
-    res.clearCookie(sessionName);
-    res.redirect(loginURL);
+const logout = async(req: express.Request, res: express.Response, next:express.NextFunction) => {
+    if(req.query.serverLogout) {
+        const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+        const openSRPLogout = 'https://reveal-stage.smartregister.org/opensrp/logout.do';
+        const keycloakLogout = 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+        const redirectURI = 'http://localhost:3000/logout'
+        const payload = {
+            headers: {
+                accept: 'application/json',
+                contentType: 'application/json;charset=UTF-8',
+                authorization: `Bearer ${accessToken}`,
+            },
+            method: 'GET',
+        }
+        if(accessToken) {
+            await fetch(openSRPLogout, payload);
+        }
+        const keycloakLogoutFullPath = `${keycloakLogout}?redirect_uri=${redirectURI}`
+        res.redirect(keycloakLogoutFullPath);
+    } else {
+        req.session.destroy(() => void 0);
+        res.clearCookie(sessionName);
+        res.redirect(loginURL);
+    }
 };
 
 // OAuth views
