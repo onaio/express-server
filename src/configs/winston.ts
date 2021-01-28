@@ -1,10 +1,14 @@
 import * as winston from 'winston';
+import os from 'os';
+
+const homedir = os.homedir();
+const logsPath = `${homedir}/.express/logs/reveal-express-server.log`
 
 // define the custom settings for each transport (file, console)
 const options = {
   file: {
     level: 'info',
-    filename: `/home/ona/projects/express-server/src/logs/app.log`,
+    filename: logsPath,
     handleExceptions: true,
     json: true,
     maxsize: 5242880, // 5MB
@@ -30,7 +34,7 @@ const logger = winston.createLogger({
 
 // create a stream object with a 'write' function that will be used by `morgan`
 const winstonStream = {
-  write: function(message:string | Error,) {
+  write: function(message: string) {
     logger.info(message);
   },
 };

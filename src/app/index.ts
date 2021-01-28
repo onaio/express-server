@@ -50,6 +50,7 @@ const app = express();
 
 app.use(compression()); // Compress all routes
 app.use(helmet()); // protect against well known vulnerabilities
+app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
 const fileStoreOptions = {
@@ -74,7 +75,6 @@ const sess = {
 if (app.get('env') === 'production') {
     app.set('trust proxy', 1); // trust first proxy
     sess.cookie.secure = true; // serve secure cookies
-    app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 }
 
 app.use(cookieParser());
@@ -178,7 +178,6 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             return res.json(preloadedState)
         })
         .catch((error: Error) => {
-            winstonLogger.error(`${error.message}-${JSON.stringify(error.stack)}`);
             return res.json({error: error.message || 'Failed to refresh token'});
         });
 }
@@ -205,7 +204,6 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
             );
         })
         .catch((e: Error) => {
-            winstonLogger.error(`${e.message}-${JSON.stringify(e.stack)}`);
             next(e);
         });
 };
