@@ -7,6 +7,8 @@ import app from '../index';
 import { parsedApiResponse } from './fixtures';
 import { winstonLogger } from '../../configs/winston';
 
+console.log('===========', __dirname);
+
 const authorizationUri = 'http://reveal-stage.smartregister.org/opensrp/oauth/';
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp';
 
@@ -17,6 +19,8 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
+
+const errorText = 'Token not found';
 
 jest.mock('client-oauth2', () => {
     class CodeFlow {
@@ -30,7 +34,7 @@ jest.mock('client-oauth2', () => {
         }
 
         public async getToken() {
-            throw new Error('token not found');
+            throw new Error(errorText);
         }
     }
     // tslint:disable-next-line: max-classes-per-file
@@ -99,6 +103,7 @@ describe('src/index.ts', () => {
             .end(() => {
                 expect(logsSpy).toHaveBeenCalledTimes(1);
                 expect(logsSpy).toHaveBeenCalledWith(
+                  /* eslint-disable-next-line no-useless-escape */
                     `::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] \"GET /oauth/state HTTP/1.1\" 200 26 \"-\" \"node-superagent/3.8.3\"\n`,
                 );
                 done();
@@ -122,13 +127,14 @@ describe('src/index.ts', () => {
                 panic(err, done);
                 expect(res.notFound).toBeFalsy();
                 expect(errorSpy).toHaveBeenCalledTimes(1);
-                expect(errorSpy.mock.calls).toMatchInlineSnapshot(`
-                    Array [
-                      Array [
-                        "500 - token not found-\\"Error: token not found\\\\n    at CodeFlow.<anonymous> (/home/ona/projects/express-server/src/app/tests/index.loging.test.ts:33:19)\\\\n    at Generator.next (<anonymous>)\\\\n    at /home/ona/projects/express-server/src/app/tests/index.loging.test.ts:8:71\\\\n    at new Promise (<anonymous>)\\\\n    at __awaiter (/home/ona/projects/express-server/src/app/tests/index.loging.test.ts:4:12)\\\\n    at CodeFlow.getToken (/home/ona/projects/express-server/src/app/tests/index.loging.test.ts:25:20)\\\\n    at oauthCallback (/home/ona/projects/express-server/src/app/index.ts:188:10)\\\\n    at Layer.handle [as handle_request] (/home/ona/projects/express-server/node_modules/express/lib/router/layer.js:95:5)\\\\n    at trim_prefix (/home/ona/projects/express-server/node_modules/express/lib/router/index.js:317:13)\\\\n    at /home/ona/projects/express-server/node_modules/express/lib/router/index.js:284:7\\"",
-                      ],
-                    ]
-                `);
+                // We will only check part of the error 
+                // because the other part points to directories and specific file numbers were the error occured. 
+                // This will be unstable to test because any additional code changing 
+                // the line were the error occures leads to failure of the test
+                expect((errorSpy.mock.calls[0][0] as any).split('at CodeFlow')[0]).toEqual(
+                    /* eslint-disable-next-line no-useless-escape */
+                    `500 - ${errorText}-\"Error: ${errorText}\\n    `,
+                );
                 done();
             });
     });
