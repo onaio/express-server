@@ -7,8 +7,6 @@ import app from '../index';
 import { parsedApiResponse } from './fixtures';
 import { winstonLogger } from '../../configs/winston';
 
-console.log('===========', __dirname);
-
 const authorizationUri = 'http://reveal-stage.smartregister.org/opensrp/oauth/';
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp';
 

@@ -14,6 +14,7 @@ const options = {
     maxsize: 5242880, // 5MB
     maxFiles: 5,
     colorize: false,
+    format: winston.format.simple(),
   },
   console: {
     level: 'debug',
@@ -39,4 +40,4 @@ const winstonStream = {
   },
 };
 
-export {logger as winstonLogger, winstonStream}
+export {logger as winstonLogger, winstonStream};
