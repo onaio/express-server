@@ -50,3 +50,7 @@ export const EXPRESS_REACT_BUILD_PATH = join(__dirname, 'build');
 export const EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL = 'http://localhost:3000/oauth/callback/opensrp';
 
 export const EXPRESS_FRONTEND_LOGIN_URL = '/fe/login';
+
+export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
+export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
+export const EXRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';

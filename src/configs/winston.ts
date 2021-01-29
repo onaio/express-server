@@ -1,18 +1,15 @@
 import * as winston from 'winston';
-import os from 'os';
-
-const homedir = os.homedir();
-const logsPath = `${homedir}/.express/logs/reveal-express-server.log`
+import { EXPRESS_MAXIMUM_LOGS_FILE_SIZE, EXPRESS_MAXIMUM_LOG_FILES_NUMBER, EXRESS_LOGS_FILE_PATH } from './envs';
 
 // define the custom settings for each transport (file, console)
 const options = {
   file: {
     level: 'info',
-    filename: logsPath,
+    filename: EXRESS_LOGS_FILE_PATH,
     handleExceptions: true,
     json: true,
-    maxsize: 5242880, // 5MB
-    maxFiles: 5,
+    maxsize: EXPRESS_MAXIMUM_LOGS_FILE_SIZE,
+    maxFiles: EXPRESS_MAXIMUM_LOG_FILES_NUMBER,
     colorize: false,
     format: winston.format.simple(),
   },
