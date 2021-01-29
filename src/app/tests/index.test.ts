@@ -192,6 +192,35 @@ describe('src/index.ts', () => {
         });
     });
 
+    it('/refresh/token works correctly when session life time is exceeded', (done) => {
+        MockDate.set('1/2/2020');
+        request(app)
+        .get('/refresh/token')
+        .set('cookie', sessionString)
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.body).toEqual({
+                message: "Session is Expired",
+                status: "error",
+                statusCode: 500,
+            });
+            done();
+        });
+    });
+
+    it('/refresh/token does not change session expiry date', (done) => {
+        // change date
+        MockDate.set('1/1/2019');
+        request(app)
+        .get('/refresh/token')
+        .set('cookie', sessionString)
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
+            done();
+        });
+    });
+
     it('Accessing login url when next path is undefined and logged in', (done) => {
         // when logged in and nextPath is not provided, redirect to home
         request(app)
@@ -249,5 +278,24 @@ describe('src/index.ts', () => {
                 expect(res.redirect).toBeTruthy();
                 done();
             });
+    });
+
+    it('/refresh/token works correctly when refresh is not allowed', (done) => {
+        MockDate.set('1/1/2020');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const envModule = require('../../configs/envs');
+        envModule.EXPRESS_ALLOW_TOKEN_RENEWAL = false;
+        // call refresh token
+        request(app)
+        .get('/refresh/token')
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.body).toEqual({
+                message: "Session is Expired",
+                status: "error",
+                statusCode: 500,
+            });
+            done();
+        });
     });
 });

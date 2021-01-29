@@ -124,8 +124,8 @@ const processUserInfo = (
 ) => {
     let userInfo = userDetails
     const date = new Date(Date.now());
-    const sessionExpiryTime = req.session?.preloadedState?.session.session_expires_at;
-    const session_expires_at = isRefresh ? sessionExpiryTime
+    const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
+    const sessionExpiresAt = isRefresh ? sessionExpiryTime
         : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
     if(!userDetails) {
         // get user details from session. will be needed when refreshing token
@@ -141,7 +141,8 @@ const processUserInfo = (
         const preloadedState = {
             gatekeeper: gatekeeperState,
             session: sessionState,
-            session_expires_at,
+            /* eslint-disable @typescript-eslint/camelcase */
+            session_expires_at: sessionExpiresAt,
         };
         req.session.preloadedState = preloadedState;
         const expireAfterMs = sessionState.extraData.oAuth2Data.refresh_expires_in * 1000;
@@ -167,9 +168,10 @@ const processUserInfo = (
 }
 
 const refreshToken = (req: express.Request, res: express.Response) => {
+    const errorMessage = 'Session is Expired';
     // check if token refreshing is allowed
     if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
-        return res.json({error: 'Token refresh not allowed'});
+        throw new Error(errorMessage);
     }
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
@@ -179,7 +181,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     }
     // check if session set maxmum life is exceeded
     if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
-        return res.json({error: 'Session is Expired'});
+        throw new Error(errorMessage);
     }
     const provider = opensrpAuth;
     // re-create an access token instance
