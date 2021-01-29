@@ -200,9 +200,7 @@ describe('src/index.ts', () => {
         .end((err: Error, res: request.Response) => {
             panic(err, done);
             expect(res.body).toEqual({
-                message: "Session is Expired",
-                status: "error",
-                statusCode: 500,
+                error: 'Session is Expired'
             });
             done();
         });
@@ -291,9 +289,7 @@ describe('src/index.ts', () => {
         .end((err: Error, res: request.Response) => {
             panic(err, done);
             expect(res.body).toEqual({
-                message: "Session is Expired",
-                status: "error",
-                statusCode: 500,
+                error: 'Session is Expired'
             });
             done();
         });
