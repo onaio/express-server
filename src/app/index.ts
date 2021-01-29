@@ -12,6 +12,7 @@ import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
 import {
+    EXPRESS_ALLOW_TOKEN_RENEWAL,
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
     EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
@@ -160,6 +161,11 @@ const processUserInfo = (
 }
 
 const refreshToken = (req: express.Request, res: express.Response) => {
+    // check if token refreshing is allowed
+    if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
+        return res.json({error: 'Token refresh not allowed'});
+    }
+
     const provider = opensrpAuth;
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
