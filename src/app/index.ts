@@ -15,6 +15,7 @@ import {
     EXPRESS_ALLOW_TOKEN_RENEWAL,
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
+    EXPRESS_MAXIMUM_SESSION_LIFE_TIME,
     EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
     EXPRESS_OPENSRP_AUTHORIZATION_URL,
     EXPRESS_OPENSRP_CALLBACK_URL,
@@ -122,6 +123,10 @@ const processUserInfo = (
     isRefresh?: boolean
 ) => {
     let userInfo = userDetails
+    const date = new Date(Date.now());
+    const sessionExpiryTime = req.session?.preloadedState?.session.session_expires_at;
+    const session_expires_at = isRefresh ? sessionExpiryTime
+        : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
     if(!userDetails) {
         // get user details from session. will be needed when refreshing token
         userInfo = req.session.preloadedState?.session?.extraData || {};
@@ -136,6 +141,7 @@ const processUserInfo = (
         const preloadedState = {
             gatekeeper: gatekeeperState,
             session: sessionState,
+            session_expires_at,
         };
         req.session.preloadedState = preloadedState;
         const expireAfterMs = sessionState.extraData.oAuth2Data.refresh_expires_in * 1000;
@@ -165,13 +171,17 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
         return res.json({error: 'Token refresh not allowed'});
     }
-
-    const provider = opensrpAuth;
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
-    if(!accessToken || !refreshToken) {
+    const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
+    if(!accessToken || !refreshToken || !sessionExpiryTime) {
         return res.json({error: 'Access token or Refresh token not found'});
     }
+    // check if session set maxmum life is exceeded
+    if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
+        return res.json({error: 'Session is Expired'});
+    }
+    const provider = opensrpAuth;
     // re-create an access token instance
     const token = provider.createToken(accessToken, refreshToken)
     return token.refresh()
