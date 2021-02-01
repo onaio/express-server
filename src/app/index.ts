@@ -36,6 +36,7 @@ import {
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
+import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
 
 type dictionary = { [key: string]: any };
@@ -176,20 +177,19 @@ const processUserInfo = (
 }
 
 const refreshToken = (req: express.Request, res: express.Response) => {
-    const errorMessage = 'Session is Expired';
     // check if token refreshing is allowed
     if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
-        return res.status(500).send({message: errorMessage});
+        return res.status(500).send({message: SESSION_IS_EXPIRED});
     }
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
     const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
     if(!accessToken || !refreshToken || !sessionExpiryTime) {
-        return res.json({error: 'Access token or Refresh token not found'});
+        return res.status(500).send({message: TOKEN_NOT_FOUND});
     }
     // check if session set maxmum life is exceeded
     if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
-        return res.status(500).send({message: errorMessage});
+        return res.status(500).send({message: SESSION_IS_EXPIRED});
     }
     const provider = opensrpAuth;
     // re-create an access token instance
@@ -200,7 +200,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             return res.json(preloadedState)
         })
         .catch((error: Error) => {
-            return res.json({error: error.message || 'Failed to refresh token'});
+            return res.status(500).send({message: error.message || TOKEN_REFRESH_FAILED});
         });
 }
 

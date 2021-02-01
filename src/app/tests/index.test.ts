@@ -185,7 +185,8 @@ describe('src/index.ts', () => {
             .get('/refresh/token')
             .end((err: Error, res: request.Response) => {
                 panic(err, done);
-                expect(res.body).toEqual({error: 'Access token or Refresh token not found'});
+                expect(res.status).toEqual(500);
+                expect(res.body).toEqual({message: 'Access token or Refresh token not found'});
                 done();
             });
 
