@@ -199,8 +199,9 @@ describe('src/index.ts', () => {
         .set('cookie', sessionString)
         .end((err: Error, res: request.Response) => {
             panic(err, done);
+            expect(res.status).toEqual(500);
             expect(res.body).toEqual({
-                error: 'Session is Expired'
+                message: 'Session is Expired'
             });
             done();
         });
@@ -288,8 +289,9 @@ describe('src/index.ts', () => {
         .get('/refresh/token')
         .end((err: Error, res: request.Response) => {
             panic(err, done);
+            expect(res.status).toEqual(500);
             expect(res.body).toEqual({
-                error: 'Session is Expired'
+                message: 'Session is Expired'
             });
             done();
         });

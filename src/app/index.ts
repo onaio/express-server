@@ -171,7 +171,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     const errorMessage = 'Session is Expired';
     // check if token refreshing is allowed
     if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
-        return res.json({error: errorMessage});
+        return res.status(500).send({message: errorMessage});
     }
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
@@ -181,7 +181,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
     }
     // check if session set maxmum life is exceeded
     if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
-        return res.json({error: errorMessage});
+        return res.status(500).send({message: errorMessage});
     }
     const provider = opensrpAuth;
     // re-create an access token instance
