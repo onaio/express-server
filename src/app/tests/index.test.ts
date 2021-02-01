@@ -255,26 +255,6 @@ describe('src/index.ts', () => {
             });
     });
 
-    it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
-        MockDate.set('1/1/2020');
-        JSON.parse = (body) => {
-            if (body === '{}') {
-                return 'string';
-            }
-        };
-        nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
-
-        request(app)
-            .get(oauthCallbackUri)
-            .end((err, res: request.Response) => {
-                panic(err, done);
-                expect(res.header.location).toEqual('/logout?serverLogout=true');
-                expect(res.notFound).toBeFalsy();
-                expect(res.redirect).toBeTruthy();
-                done();
-            });
-    });
-
     it('logs user out from opensrp and calls keycloak', (done) => {
         (fetch as any).mockImplementation(()=> Promise.resolve('successfull'));
         request(app)
@@ -295,6 +275,26 @@ describe('src/index.ts', () => {
                         },
                         "method": "GET"
                     })
+                done();
+            });
+    });
+
+    it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
+        MockDate.set('1/1/2020');
+        JSON.parse = (body) => {
+            if (body === '{}') {
+                return 'string';
+            }
+        };
+        nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
+
+        request(app)
+            .get(oauthCallbackUri)
+            .end((err, res: request.Response) => {
+                panic(err, done);
+                expect(res.header.location).toEqual('/logout?serverLogout=true');
+                expect(res.notFound).toBeFalsy();
+                expect(res.redirect).toBeTruthy();
                 done();
             });
     });

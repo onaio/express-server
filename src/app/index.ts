@@ -260,7 +260,6 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
 
 const logout = async (req: express.Request, res: express.Response) => {
     if(req.query.serverLogout) {
-        console.log('==============')
         const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
         const payload = {
             headers: {
