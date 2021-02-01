@@ -74,3 +74,12 @@ export type EXPRESS_OPENSRP_LOGOUT_URL = typeof EXPRESS_OPENSRP_LOGOUT_URL;
 
 export const EXPRESS_KEYCLOAK_LOGOUT_URL = process.env.EXPRESS_KEYCLOAK_LOGOUT_URL || 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
 export type EXPRESS_KEYCLOAK_LOGOUT_URL = typeof EXPRESS_KEYCLOAK_LOGOUT_URL;
+
+export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = Number(process.env.EXPRESS_MAXIMUM_LOGS_FILE_SIZE || 5242880); // 5MB
+export type EXPRESS_MAXIMUM_LOGS_FILE_SIZE = typeof EXPRESS_MAXIMUM_LOGS_FILE_SIZE;
+
+export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = Number(process.env.EXPRESS_MAXIMUM_LOG_FILES_NUMBER || 5);
+export type EXPRESS_MAXIMUM_LOG_FILES_NUMBER = typeof EXPRESS_MAXIMUM_LOG_FILES_NUMBER;
+
+export const EXRESS_LOGS_FILE_PATH = process.env.EXRESS_LOGS_FILE_PATH || '/tmp/logs/reveal-express-server.log';
+export type EXRESS_LOGS_FILE_PATH = typeof EXRESS_LOGS_FILE_PATH;

@@ -54,3 +54,7 @@ export const EXPRESS_FRONTEND_LOGIN_URL = '/fe/login';
 export const EXPRESS_SERVER_LOGOUT_URL= 'http://localhost:3000/logout';
 export const EXPRESS_OPENSRP_LOGOUT_URL= 'https://reveal-stage.smartregister.org/opensrp/logout.do';
 export const EXPRESS_KEYCLOAK_LOGOUT_URL= 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+
+export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
+export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
+export const EXRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';
