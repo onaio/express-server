@@ -66,6 +66,15 @@ export type EXPRESS_REACT_BUILD_PATH = typeof EXPRESS_REACT_BUILD_PATH;
 export const EXPRESS_FRONTEND_LOGIN_URL = process.env.EXPRESS_FRONTEND_LOGIN_URL || '/fe/login';
 export type EXPRESS_FRONTEND_LOGIN_URL = typeof EXPRESS_FRONTEND_LOGIN_URL;
 
+export const EXPRESS_SERVER_LOGOUT_URL = process.env.EXPRESS_SERVER_LOGOUT_URL || 'http://localhost:3000/logout';
+export type EXPRESS_SERVER_LOGOUT_URL = typeof EXPRESS_SERVER_LOGOUT_URL;
+
+export const EXPRESS_OPENSRP_LOGOUT_URL = process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://reveal-stage.smartregister.org/opensrp/logout.do';
+export type EXPRESS_OPENSRP_LOGOUT_URL = typeof EXPRESS_OPENSRP_LOGOUT_URL;
+
+export const EXPRESS_KEYCLOAK_LOGOUT_URL = process.env.EXPRESS_KEYCLOAK_LOGOUT_URL || 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+export type EXPRESS_KEYCLOAK_LOGOUT_URL = typeof EXPRESS_KEYCLOAK_LOGOUT_URL;
+
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = Number(process.env.EXPRESS_MAXIMUM_LOGS_FILE_SIZE || 5242880); // 5MB
 export type EXPRESS_MAXIMUM_LOGS_FILE_SIZE = typeof EXPRESS_MAXIMUM_LOGS_FILE_SIZE;
 
