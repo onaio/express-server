@@ -6,11 +6,13 @@ import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import { trimStart } from 'lodash';
+import morgan from 'morgan';
 import path from 'path';
 import querystring from 'querystring';
 import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
+import { winstonLogger, winstonStream } from '../configs/winston';
 import {
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
@@ -28,6 +30,7 @@ import {
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
+
 
 type dictionary = { [key: string]: any };
 
@@ -47,6 +50,7 @@ const app = express();
 
 app.use(compression()); // Compress all routes
 app.use(helmet()); // protect against well known vulnerabilities
+app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
 const fileStoreOptions = {
@@ -173,7 +177,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
             return res.json(preloadedState)
         })
-        .catch((error) => {
+        .catch((error: Error) => {
             return res.json({error: error.message || 'Failed to refresh token'});
         });
 }
@@ -254,6 +258,7 @@ router.use('*', renderer);
 app.use(router);
 
 app.use((err: HttpException, _: express.Request, res: express.Response, __: express.NextFunction) => {
+    winstonLogger.error(`${err.statusCode || 500} - ${err.message}-${JSON.stringify(err.stack)}`);
     handleError(err, res);
 });
 
