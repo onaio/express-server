@@ -6,30 +6,37 @@ import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
 import { trimStart } from 'lodash';
+import fetch from 'node-fetch';
+import morgan from 'morgan';
 import path from 'path';
 import querystring from 'querystring';
 import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
+import { winstonLogger, winstonStream } from '../configs/winston';
 import {
     EXPRESS_ALLOW_TOKEN_RENEWAL,
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
     EXPRESS_MAXIMUM_SESSION_LIFE_TIME,
+    EXPRESS_KEYCLOAK_LOGOUT_URL,
     EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
     EXPRESS_OPENSRP_AUTHORIZATION_URL,
     EXPRESS_OPENSRP_CALLBACK_URL,
     EXPRESS_OPENSRP_CLIENT_ID,
     EXPRESS_OPENSRP_CLIENT_SECRET,
+    EXPRESS_OPENSRP_LOGOUT_URL,
     EXPRESS_OPENSRP_OAUTH_STATE,
     EXPRESS_OPENSRP_USER_URL,
     EXPRESS_REACT_BUILD_PATH,
+    EXPRESS_SERVER_LOGOUT_URL,
     EXPRESS_SESSION_FILESTORE_PATH,
     EXPRESS_SESSION_LOGIN_URL,
     EXPRESS_SESSION_NAME,
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
+
 
 type dictionary = { [key: string]: any };
 
@@ -49,6 +56,7 @@ const app = express();
 
 app.use(compression()); // Compress all routes
 app.use(helmet()); // protect against well known vulnerabilities
+app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
 const fileStoreOptions = {
@@ -191,7 +199,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
             return res.json(preloadedState)
         })
-        .catch((error) => {
+        .catch((error: Error) => {
             return res.json({error: error.message || 'Failed to refresh token'});
         });
 }
@@ -212,8 +220,13 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
                     if (error) {
                         next(error); // pass error to express
                     }
-                    const apiResponse = JSON.parse(body);
-                    processUserInfo(req, res, user.data, apiResponse);
+                    let apiResponse: dictionary;
+                    try {
+                        apiResponse = JSON.parse(body);
+                        processUserInfo(req, res, user.data, apiResponse);
+                    } catch (_) {
+                        res.redirect('/logout?serverLogout=true');
+                    }
                 },
             );
         })
@@ -245,10 +258,28 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
     req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
 };
 
-const logout = (req: express.Request, res: express.Response) => {
-    req.session.destroy(() => void 0);
-    res.clearCookie(sessionName);
-    res.redirect(loginURL);
+const logout = async (req: express.Request, res: express.Response) => {
+    if(req.query.serverLogout) {
+        console.log('==============')
+        const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+        const payload = {
+            headers: {
+                accept: 'application/json',
+                contentType: 'application/json;charset=UTF-8',
+                authorization: `Bearer ${accessToken}`,
+            },
+            method: 'GET',
+        }
+        if(accessToken) {
+            await fetch(EXPRESS_OPENSRP_LOGOUT_URL, payload);
+        }
+        const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`
+        res.redirect(keycloakLogoutFullPath);
+    } else {
+        req.session.destroy(() => void 0);
+        res.clearCookie(sessionName);
+        res.redirect(loginURL);
+    }
 };
 
 // OAuth views
@@ -261,6 +292,7 @@ router.use('/refresh/token', refreshToken);
 router.use(loginURL, loginRedirect);
 // logout
 router.use('/logout', logout);
+
 // render React app
 router.use('^/$', renderer);
 // other static resources should just be served as they are
@@ -272,6 +304,7 @@ router.use('*', renderer);
 app.use(router);
 
 app.use((err: HttpException, _: express.Request, res: express.Response, __: express.NextFunction) => {
+    winstonLogger.error(`${err.statusCode || 500} - ${err.message}-${JSON.stringify(err.stack)}`);
     handleError(err, res);
 });
 

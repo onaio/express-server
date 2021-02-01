@@ -71,3 +71,21 @@ export type EXPRESS_ALLOW_TOKEN_RENEWAL = typeof EXPRESS_ALLOW_TOKEN_RENEWAL;
 
 export const EXPRESS_MAXIMUM_SESSION_LIFE_TIME = Number(process.env.EXPRESS_MAXIMUM_SESSION_LIFE_TIME || 3*60*60); // 3hrs default
 export type EXPRESS_MAXIMUM_SESSION_LIFE_TIME = typeof EXPRESS_MAXIMUM_SESSION_LIFE_TIME;
+
+export const EXPRESS_SERVER_LOGOUT_URL = process.env.EXPRESS_SERVER_LOGOUT_URL || 'http://localhost:3000/logout';
+export type EXPRESS_SERVER_LOGOUT_URL = typeof EXPRESS_SERVER_LOGOUT_URL;
+
+export const EXPRESS_OPENSRP_LOGOUT_URL = process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://reveal-stage.smartregister.org/opensrp/logout.do';
+export type EXPRESS_OPENSRP_LOGOUT_URL = typeof EXPRESS_OPENSRP_LOGOUT_URL;
+
+export const EXPRESS_KEYCLOAK_LOGOUT_URL = process.env.EXPRESS_KEYCLOAK_LOGOUT_URL || 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+export type EXPRESS_KEYCLOAK_LOGOUT_URL = typeof EXPRESS_KEYCLOAK_LOGOUT_URL;
+
+export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = Number(process.env.EXPRESS_MAXIMUM_LOGS_FILE_SIZE || 5242880); // 5MB
+export type EXPRESS_MAXIMUM_LOGS_FILE_SIZE = typeof EXPRESS_MAXIMUM_LOGS_FILE_SIZE;
+
+export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = Number(process.env.EXPRESS_MAXIMUM_LOG_FILES_NUMBER || 5);
+export type EXPRESS_MAXIMUM_LOG_FILES_NUMBER = typeof EXPRESS_MAXIMUM_LOG_FILES_NUMBER;
+
+export const EXRESS_LOGS_FILE_PATH = process.env.EXRESS_LOGS_FILE_PATH || '/tmp/logs/reveal-express-server.log';
+export type EXRESS_LOGS_FILE_PATH = typeof EXRESS_LOGS_FILE_PATH;
