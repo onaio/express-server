@@ -15,8 +15,10 @@ import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
 import { winstonLogger, winstonStream } from '../configs/winston';
 import {
+    EXPRESS_ALLOW_TOKEN_RENEWAL,
     EXPRESS_FRONTEND_LOGIN_URL,
     EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
+    EXPRESS_MAXIMUM_SESSION_LIFE_TIME,
     EXPRESS_KEYCLOAK_LOGOUT_URL,
     EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
     EXPRESS_OPENSRP_AUTHORIZATION_URL,
@@ -34,6 +36,7 @@ import {
     EXPRESS_SESSION_PATH,
     EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
+import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
 
 type dictionary = { [key: string]: any };
@@ -129,6 +132,10 @@ const processUserInfo = (
     isRefresh?: boolean
 ) => {
     let userInfo = userDetails
+    const date = new Date(Date.now());
+    const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
+    const sessionExpiresAt = isRefresh ? sessionExpiryTime
+        : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
     if(!userDetails) {
         // get user details from session. will be needed when refreshing token
         userInfo = req.session.preloadedState?.session?.extraData || {};
@@ -143,6 +150,8 @@ const processUserInfo = (
         const preloadedState = {
             gatekeeper: gatekeeperState,
             session: sessionState,
+            /* eslint-disable @typescript-eslint/camelcase */
+            session_expires_at: sessionExpiresAt,
         };
         req.session.preloadedState = preloadedState;
         const expireAfterMs = sessionState.extraData.oAuth2Data.refresh_expires_in * 1000;
@@ -168,12 +177,21 @@ const processUserInfo = (
 }
 
 const refreshToken = (req: express.Request, res: express.Response) => {
-    const provider = opensrpAuth;
+    // check if token refreshing is allowed
+    if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
+        return res.status(500).send({message: SESSION_IS_EXPIRED});
+    }
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
-    if(!accessToken || !refreshToken) {
-        return res.json({error: 'Access token or Refresh token not found'});
+    const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
+    if(!accessToken || !refreshToken || !sessionExpiryTime) {
+        return res.status(500).send({message: TOKEN_NOT_FOUND});
     }
+    // check if session set maxmum life is exceeded
+    if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
+        return res.status(500).send({message: SESSION_IS_EXPIRED});
+    }
+    const provider = opensrpAuth;
     // re-create an access token instance
     const token = provider.createToken(accessToken, refreshToken)
     return token.refresh()
@@ -182,7 +200,7 @@ const refreshToken = (req: express.Request, res: express.Response) => {
             return res.json(preloadedState)
         })
         .catch((error: Error) => {
-            return res.json({error: error.message || 'Failed to refresh token'});
+            return res.status(500).send({message: error.message || TOKEN_REFRESH_FAILED});
         });
 }
 

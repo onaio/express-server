@@ -51,6 +51,10 @@ export const EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL = 'http://localhost:3000/oaut
 
 export const EXPRESS_FRONTEND_LOGIN_URL = '/fe/login';
 
+export const EXPRESS_ALLOW_TOKEN_RENEWAL = true;
+
+export const EXPRESS_MAXIMUM_SESSION_LIFE_TIME = 3600;
+
 export const EXPRESS_SERVER_LOGOUT_URL= 'http://localhost:3000/logout';
 export const EXPRESS_OPENSRP_LOGOUT_URL= 'https://reveal-stage.smartregister.org/opensrp/logout.do';
 export const EXPRESS_KEYCLOAK_LOGOUT_URL= 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';

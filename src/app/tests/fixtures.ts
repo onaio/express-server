@@ -48,6 +48,7 @@ export const oauthState = {
             username: 'superset-user',
         },
     },
+    session_expires_at: '2020-01-01T01:00:00.000Z',
 };
 
 export const unauthorized = {

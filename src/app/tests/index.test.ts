@@ -185,7 +185,8 @@ describe('src/index.ts', () => {
             .get('/refresh/token')
             .end((err: Error, res: request.Response) => {
                 panic(err, done);
-                expect(res.body).toEqual({error: 'Access token or Refresh token not found'});
+                expect(res.status).toEqual(500);
+                expect(res.body).toEqual({message: 'Access token or Refresh token not found'});
                 done();
             });
 
@@ -196,6 +197,34 @@ describe('src/index.ts', () => {
         .end((err: Error, res: request.Response) => {
             panic(err, done);
             expect(res.body).toEqual(oauthState);
+            done();
+        });
+    });
+
+    it('/refresh/token works correctly when session life time is exceeded', (done) => {
+        MockDate.set('1/2/2020');
+        request(app)
+        .get('/refresh/token')
+        .set('cookie', sessionString)
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.status).toEqual(500);
+            expect(res.body).toEqual({
+                message: 'Session is Expired'
+            });
+            done();
+        });
+    });
+
+    it('/refresh/token does not change session expiry date', (done) => {
+        // change date
+        MockDate.set('1/1/2019');
+        request(app)
+        .get('/refresh/token')
+        .set('cookie', sessionString)
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
             done();
         });
     });
@@ -227,26 +256,6 @@ describe('src/index.ts', () => {
             });
     });
 
-    it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
-        MockDate.set('1/1/2020');
-        JSON.parse = (body) => {
-            if (body === '{}') {
-                return 'string';
-            }
-        };
-        nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
-
-        request(app)
-            .get(oauthCallbackUri)
-            .end((err, res: request.Response) => {
-                panic(err, done);
-                expect(res.header.location).toEqual('/logout?serverLogout=true');
-                expect(res.notFound).toBeFalsy();
-                expect(res.redirect).toBeTruthy();
-                done();
-            });
-    });
-
     it('logs user out from opensrp and calls keycloak', (done) => {
         (fetch as any).mockImplementation(()=> Promise.resolve('successfull'));
         request(app)
@@ -267,6 +276,26 @@ describe('src/index.ts', () => {
                         },
                         "method": "GET"
                     })
+                done();
+            });
+    });
+
+    it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
+        MockDate.set('1/1/2020');
+        JSON.parse = (body) => {
+            if (body === '{}') {
+                return 'string';
+            }
+        };
+        nock('http://reveal-stage.smartregister.org').get(`/opensrp/user-details`).reply(200, {});
+
+        request(app)
+            .get(oauthCallbackUri)
+            .end((err, res: request.Response) => {
+                panic(err, done);
+                expect(res.header.location).toEqual('/logout?serverLogout=true');
+                expect(res.notFound).toBeFalsy();
+                expect(res.redirect).toBeTruthy();
                 done();
             });
     });
@@ -301,5 +330,23 @@ describe('src/index.ts', () => {
                 expect(res.redirect).toBeTruthy();
                 done();
             });
+    });
+
+    it('/refresh/token works correctly when refresh is not allowed', (done) => {
+        MockDate.set('1/1/2020');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const envModule = require('../../configs/envs');
+        envModule.EXPRESS_ALLOW_TOKEN_RENEWAL = false;
+        // call refresh token
+        request(app)
+        .get('/refresh/token')
+        .end((err: Error, res: request.Response) => {
+            panic(err, done);
+            expect(res.status).toEqual(500);
+            expect(res.body).toEqual({
+                message: 'Session is Expired'
+            });
+            done();
+        });
     });
 });
