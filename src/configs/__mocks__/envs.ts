@@ -61,4 +61,4 @@ export const EXPRESS_KEYCLOAK_LOGOUT_URL= 'https://keycloak-stage.smartregister.
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
 export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
-export const EXRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';
+export const EXPRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';

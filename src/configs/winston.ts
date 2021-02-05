@@ -1,11 +1,11 @@
 import * as winston from 'winston';
-import { EXPRESS_MAXIMUM_LOGS_FILE_SIZE, EXPRESS_MAXIMUM_LOG_FILES_NUMBER, EXRESS_LOGS_FILE_PATH } from './envs';
+import { EXPRESS_MAXIMUM_LOGS_FILE_SIZE, EXPRESS_MAXIMUM_LOG_FILES_NUMBER, EXPRESS_LOGS_FILE_PATH } from './envs';
 
 // define the custom settings for each transport (file, console)
 const options = {
   file: {
     level: 'info',
-    filename: EXRESS_LOGS_FILE_PATH,
+    filename: EXPRESS_LOGS_FILE_PATH,
     handleExceptions: true,
     json: true,
     maxsize: EXPRESS_MAXIMUM_LOGS_FILE_SIZE,
