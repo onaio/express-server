@@ -38,7 +38,6 @@ import {
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
-
 type dictionary = { [key: string]: any };
 
 const opensrpAuth = new ClientOAuth2({
@@ -129,14 +128,15 @@ const processUserInfo = (
     res: express.Response,
     authDetails: dictionary,
     userDetails?: dictionary,
-    isRefresh?: boolean
+    isRefresh?: boolean,
 ) => {
-    let userInfo = userDetails
+    let userInfo = userDetails;
     const date = new Date(Date.now());
     const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
-    const sessionExpiresAt = isRefresh ? sessionExpiryTime
+    const sessionExpiresAt = isRefresh
+        ? sessionExpiryTime
         : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
-    if(!userDetails) {
+    if (!userDetails) {
         // get user details from session. will be needed when refreshing token
         userInfo = req.session.preloadedState?.session?.extraData || {};
     }
@@ -159,8 +159,8 @@ const processUserInfo = (
         // you have to save the session manually for POST requests like this one
         req.session.save(() => void 0);
         // when refreshing token we only need the preloaded state
-        if(isRefresh) {
-            return preloadedState
+        if (isRefresh) {
+            return preloadedState;
         }
         if (nextPath) {
             /** reset nextPath to undefined; its value once set should only be used
@@ -174,35 +174,40 @@ const processUserInfo = (
         }
         return res.redirect(EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL);
     }
-}
+};
 
-const refreshToken = (req: express.Request, res: express.Response) => {
+const refreshToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     // check if token refreshing is allowed
-    if(!EXPRESS_ALLOW_TOKEN_RENEWAL) {
-        return res.status(500).send({message: SESSION_IS_EXPIRED});
+    if (!EXPRESS_ALLOW_TOKEN_RENEWAL) {
+        winstonLogger.info(SESSION_IS_EXPIRED);
+        return res.status(500).send({ message: SESSION_IS_EXPIRED });
     }
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
     const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
     const sessionExpiryTime = req.session?.preloadedState?.session_expires_at;
-    if(!accessToken || !refreshToken || !sessionExpiryTime) {
-        return res.status(500).send({message: TOKEN_NOT_FOUND});
+    if (!accessToken || !refreshToken || !sessionExpiryTime) {
+        winstonLogger.info(TOKEN_NOT_FOUND);
+        return res.status(500).send({ message: TOKEN_NOT_FOUND });
     }
     // check if session set maxmum life is exceeded
-    if(new Date(Date.now()) >= new Date(sessionExpiryTime)) {
-        return res.status(500).send({message: SESSION_IS_EXPIRED});
+    if (new Date(Date.now()) >= new Date(sessionExpiryTime)) {
+        winstonLogger.info(SESSION_IS_EXPIRED);
+        return res.status(500).send({ message: SESSION_IS_EXPIRED });
     }
     const provider = opensrpAuth;
     // re-create an access token instance
-    const token = provider.createToken(accessToken, refreshToken)
-    return token.refresh()
-        .then(oauthRes => {
+    const token = provider.createToken(accessToken, refreshToken);
+    return token
+        .refresh()
+        .then((oauthRes) => {
             const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
-            return res.json(preloadedState)
+            return res.json(preloadedState);
         })
         .catch((error: Error) => {
-            return res.status(500).send({message: error.message || TOKEN_REFRESH_FAILED});
+            next(error); // pass error to express
+            return res.status(500).send({ message: error.message || TOKEN_REFRESH_FAILED });
         });
-}
+};
 
 const oauthCallback = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const provider = opensrpAuth;
@@ -231,13 +236,14 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
             );
         })
         .catch((e: Error) => {
-            next(e);
+            next(e); // pass error to express
         });
 };
 
 const oauthState = (req: express.Request, res: express.Response) => {
     // check if logged in
     if (!req.session.preloadedState) {
+        winstonLogger.info(`Not authorized`);
         return res.json({ error: 'Not authorized' });
     }
     // only return this when user has valid session
@@ -259,7 +265,7 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
 };
 
 const logout = async (req: express.Request, res: express.Response) => {
-    if(req.query.serverLogout) {
+    if (req.query.serverLogout) {
         const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
         const payload = {
             headers: {
@@ -268,11 +274,11 @@ const logout = async (req: express.Request, res: express.Response) => {
                 authorization: `Bearer ${accessToken}`,
             },
             method: 'GET',
-        }
-        if(accessToken) {
+        };
+        if (accessToken) {
             await fetch(EXPRESS_OPENSRP_LOGOUT_URL, payload);
         }
-        const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`
+        const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`;
         res.redirect(keycloakLogoutFullPath);
     } else {
         req.session.destroy(() => void 0);
