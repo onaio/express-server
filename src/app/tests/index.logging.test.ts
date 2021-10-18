@@ -99,9 +99,11 @@ describe('src/index.ts', () => {
         request(app)
             .get('/oauth/state')
             .end(() => {
-                expect(logsSpy).toHaveBeenCalledTimes(1);
+                // one by winston, other by morgan
+                expect(logsSpy).toHaveBeenCalledTimes(2);
+                expect(logsSpy).toHaveBeenCalledWith(`Not authorized`);
                 expect(logsSpy).toHaveBeenCalledWith(
-                  /* eslint-disable-next-line no-useless-escape */
+                    /* eslint-disable-next-line no-useless-escape */
                     `::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] \"GET /oauth/state HTTP/1.1\" 200 26 \"-\" \"node-superagent/3.8.3\"\n`,
                 );
                 done();
@@ -125,9 +127,9 @@ describe('src/index.ts', () => {
                 panic(err, done);
                 expect(res.notFound).toBeFalsy();
                 expect(errorSpy).toHaveBeenCalledTimes(1);
-                // We will only check part of the error 
-                // because the other part points to directories and specific file numbers were the error occured. 
-                // This will be unstable to test because any additional code changing 
+                // We will only check part of the error
+                // because the other part points to directories and specific file numbers were the error occured.
+                // This will be unstable to test because any additional code changing
                 // the line were the error occures leads to failure of the test
                 expect((errorSpy.mock.calls[0][0] as any).split('at CodeFlow')[0]).toEqual(
                     /* eslint-disable-next-line no-useless-escape */
