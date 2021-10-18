@@ -92,3 +92,7 @@ export type EXPRESS_MAXIMUM_LOG_FILES_NUMBER = typeof EXPRESS_MAXIMUM_LOG_FILES_
 
 export const EXPRESS_LOGS_FILE_PATH = process.env.EXPRESS_LOGS_FILE_PATH || '/tmp/logs/express-server-errors.log';
 export type EXPRESS_LOGS_FILE_PATH = typeof EXPRESS_LOGS_FILE_PATH;
+
+export const EXPRESS_COMBINED_LOGS_FILE_PATH =
+    process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || '/tmp/logs/express-server-combined.log';
+export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_PATH;

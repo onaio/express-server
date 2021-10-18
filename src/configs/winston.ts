@@ -1,5 +1,10 @@
 import * as winston from 'winston';
-import { EXPRESS_MAXIMUM_LOGS_FILE_SIZE, EXPRESS_MAXIMUM_LOG_FILES_NUMBER, EXPRESS_LOGS_FILE_PATH } from './envs';
+import {
+    EXPRESS_MAXIMUM_LOGS_FILE_SIZE,
+    EXPRESS_MAXIMUM_LOG_FILES_NUMBER,
+    EXPRESS_LOGS_FILE_PATH,
+    EXPRESS_COMBINED_LOGS_FILE_PATH,
+} from './envs';
 
 // new Winston Logger with two channels (file and console)
 const winstonLogger = winston.createLogger({
@@ -13,7 +18,7 @@ const winstonLogger = winston.createLogger({
         }),
         // output errors, warnings, and info (level 2) to a combined error log file and to console (piped to pm2)
         new winston.transports.File({
-            filename: '/tmp/logs/express-server-combined.log',
+            filename: EXPRESS_COMBINED_LOGS_FILE_PATH,
             level: 'info',
             maxsize: EXPRESS_MAXIMUM_LOGS_FILE_SIZE,
             maxFiles: EXPRESS_MAXIMUM_LOG_FILES_NUMBER,

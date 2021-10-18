@@ -55,10 +55,13 @@ export const EXPRESS_ALLOW_TOKEN_RENEWAL = true;
 
 export const EXPRESS_MAXIMUM_SESSION_LIFE_TIME = 3600;
 
-export const EXPRESS_SERVER_LOGOUT_URL= 'http://localhost:3000/logout';
-export const EXPRESS_OPENSRP_LOGOUT_URL= 'https://reveal-stage.smartregister.org/opensrp/logout.do';
-export const EXPRESS_KEYCLOAK_LOGOUT_URL= 'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+export const EXPRESS_SERVER_LOGOUT_URL = 'http://localhost:3000/logout';
+export const EXPRESS_OPENSRP_LOGOUT_URL = 'https://reveal-stage.smartregister.org/opensrp/logout.do';
+export const EXPRESS_KEYCLOAK_LOGOUT_URL =
+    'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
 export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
 export const EXPRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';
+
+export const EXPRESS_COMBINED_LOGS_FILE_PATH = '/tmp/logs/express-server-combined.log';
