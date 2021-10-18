@@ -10,7 +10,7 @@ import {
     EXPRESS_KEYCLOAK_LOGOUT_URL,
     EXPRESS_SERVER_LOGOUT_URL,
     EXPRESS_OPENSRP_LOGOUT_URL,
-    EXPRESS_FRONTEND_LOGIN_URL
+    EXPRESS_FRONTEND_LOGIN_URL,
 } from '../../configs/envs';
 import app from '../index';
 import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
@@ -67,7 +67,7 @@ jest.mock('client-oauth2', () => {
             return { url: 'http://someUrl.com' };
         }
         public async refresh() {
-            return {data: this.data};
+            return { data: this.data };
         }
     }
 
@@ -85,9 +85,9 @@ jest.mock('client-oauth2', () => {
             this.options = options;
             this.request = req;
         }
-        public createToken = (() => {
-            return this.token
-        });
+        public createToken = () => {
+            return this.token;
+        };
     };
 });
 
@@ -186,47 +186,47 @@ describe('src/index.ts', () => {
             .end((err: Error, res: request.Response) => {
                 panic(err, done);
                 expect(res.status).toEqual(500);
-                expect(res.body).toEqual({message: 'Access token or Refresh token not found'});
+                expect(res.body).toEqual({ message: 'Access token or Refresh token not found' });
                 done();
             });
 
         // call refresh token
         request(app)
-        .get('/refresh/token')
-        .set('cookie', sessionString)
-        .end((err: Error, res: request.Response) => {
-            panic(err, done);
-            expect(res.body).toEqual(oauthState);
-            done();
-        });
+            .get('/refresh/token')
+            .set('cookie', sessionString)
+            .end((err: Error, res: request.Response) => {
+                panic(err, done);
+                expect(res.body).toEqual(oauthState);
+                done();
+            });
     });
 
     it('/refresh/token works correctly when session life time is exceeded', (done) => {
         MockDate.set('1/2/2020');
         request(app)
-        .get('/refresh/token')
-        .set('cookie', sessionString)
-        .end((err: Error, res: request.Response) => {
-            panic(err, done);
-            expect(res.status).toEqual(500);
-            expect(res.body).toEqual({
-                message: 'Session is Expired'
+            .get('/refresh/token')
+            .set('cookie', sessionString)
+            .end((err: Error, res: request.Response) => {
+                panic(err, done);
+                expect(res.status).toEqual(500);
+                expect(res.body).toEqual({
+                    message: 'Session is Expired',
+                });
+                done();
             });
-            done();
-        });
     });
 
     it('/refresh/token does not change session expiry date', (done) => {
         // change date
         MockDate.set('1/1/2019');
         request(app)
-        .get('/refresh/token')
-        .set('cookie', sessionString)
-        .end((err: Error, res: request.Response) => {
-            panic(err, done);
-            expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
-            done();
-        });
+            .get('/refresh/token')
+            .set('cookie', sessionString)
+            .end((err: Error, res: request.Response) => {
+                panic(err, done);
+                expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
+                done();
+            });
     });
 
     it('Accessing login url when next path is undefined and logged in', (done) => {
@@ -242,7 +242,7 @@ describe('src/index.ts', () => {
                 done();
             });
     });
-        it('Accessing login url when next Path is defined and logged in', (done) => {
+    it('Accessing login url when next Path is defined and logged in', (done) => {
         // when logged in and nextPath is not provided, redirect to home
         request(app)
             .get('/login?next=%2Fteams')
@@ -257,25 +257,25 @@ describe('src/index.ts', () => {
     });
 
     it('logs user out from opensrp and calls keycloak', (done) => {
-        (fetch as any).mockImplementation(()=> Promise.resolve('successfull'));
+        (fetch as any).mockImplementation(() => Promise.resolve('successfull'));
         request(app)
             .get('/logout?serverLogout=true')
             .set('Cookie', sessionString)
             .end((err, res: request.Response) => {
                 panic(err, done);
-                expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`);
+                expect(res.header.location).toEqual(
+                    `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`,
+                );
                 expect(res.redirect).toBeTruthy();
                 expect(fetch).toHaveBeenCalledTimes(1);
-                expect(fetch).toHaveBeenCalledWith(
-                    EXPRESS_OPENSRP_LOGOUT_URL,
-                    {
-                        "headers": {
-                            "accept": "application/json",
-                            "authorization": "Bearer 64dc9918-fa1c-435d-9a97-ddb4aa1a8316",
-                            "contentType": "application/json;charset=UTF-8"
-                        },
-                        "method": "GET"
-                    })
+                expect(fetch).toHaveBeenCalledWith(EXPRESS_OPENSRP_LOGOUT_URL, {
+                    headers: {
+                        accept: 'application/json',
+                        authorization: 'Bearer 64dc9918-fa1c-435d-9a97-ddb4aa1a8316',
+                        contentType: 'application/json;charset=UTF-8',
+                    },
+                    method: 'GET',
+                });
                 done();
             });
     });
@@ -339,14 +339,14 @@ describe('src/index.ts', () => {
         envModule.EXPRESS_ALLOW_TOKEN_RENEWAL = false;
         // call refresh token
         request(app)
-        .get('/refresh/token')
-        .end((err: Error, res: request.Response) => {
-            panic(err, done);
-            expect(res.status).toEqual(500);
-            expect(res.body).toEqual({
-                message: 'Session is Expired'
+            .get('/refresh/token')
+            .end((err: Error, res: request.Response) => {
+                panic(err, done);
+                expect(res.status).toEqual(500);
+                expect(res.body).toEqual({
+                    message: 'Session is Expired',
+                });
+                done();
             });
-            done();
-        });
     });
 });
