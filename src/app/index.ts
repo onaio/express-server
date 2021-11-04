@@ -59,6 +59,11 @@ app.use(helmet()); // protect against well known vulnerabilities
 app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
+const fileStoreOptions: sessionFileStore.Options = {
+    path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
+    // channel session-file-store warnings to winston
+    logFn: (message) => winstonLogger.info(message),
+};
 
 let nextPath: string | undefined;
 
@@ -72,11 +77,7 @@ const sess = {
     resave: true,
     saveUninitialized: true,
     secret: EXPRESS_SESSION_SECRET || 'hunter2',
-    store: new FileStore({
-        path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
-        // channel session-file-store warnings to winston
-        logFn: (message) => winstonLogger.info(message),
-    }),
+    store: new FileStore(fileStoreOptions),
 };
 
 if (app.get('env') === 'production') {
