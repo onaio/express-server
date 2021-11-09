@@ -310,9 +310,16 @@ router.use('*', renderer);
 // tell the app to use the above rules
 app.use(router);
 
-app.use((err: HttpException, _: express.Request, res: express.Response, __: express.NextFunction) => {
+export const errorHandler = (
+    err: HttpException,
+    _: express.Request,
+    res: express.Response,
+    __: express.NextFunction,
+) => {
     winstonLogger.error(`${err.statusCode || 500} - ${err.message}-${JSON.stringify(err.stack)}`);
     handleError(err, res);
-});
+};
+
+app.use(errorHandler);
 
 export default app;
