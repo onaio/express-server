@@ -12,8 +12,10 @@ import {
     EXPRESS_OPENSRP_LOGOUT_URL,
     EXPRESS_FRONTEND_LOGIN_URL,
 } from '../../configs/envs';
-import app from '../index';
+import app, { errorHandler } from '../index';
 import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
+import express from 'express';
+import { winstonLogger } from '../../configs/winston';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { extractCookies } = require('./utils');
@@ -28,6 +30,7 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
+jest.mock('../../configs/winston');
 jest.mock('node-fetch');
 
 jest.mock('client-oauth2', () => {
@@ -348,5 +351,40 @@ describe('src/index.ts', () => {
                 });
                 done();
             });
+    });
+
+    it('handle error middleware works', (done) => {
+        const winston = jest.spyOn(winstonLogger, 'error');
+        errorHandler(
+            { name: 'error', statusCode: 500, message: 'resource owner or authorization server denied the request' },
+            {} as express.Request,
+            {
+                redirect(url: string) {
+                    this.url = url;
+                    return;
+                },
+            } as express.Response,
+            {} as express.NextFunction,
+        );
+
+        errorHandler(
+            { name: 'error', statusCode: 500, message: 'generic error' },
+            {} as express.Request,
+            {
+                status(status) {
+                    this.code = status;
+                    return this;
+                },
+                json(body) {
+                    this.body = JSON.stringify(body);
+                    return this;
+                },
+            } as express.Response,
+            {} as express.NextFunction,
+        );
+
+        expect(winston).toHaveBeenCalledTimes(2);
+
+        done();
     });
 });
