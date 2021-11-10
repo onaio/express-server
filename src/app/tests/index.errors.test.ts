@@ -53,9 +53,9 @@ describe('src/index.ts', () => {
             .end((err: Error, res: request.Response) => {
                 panic(err, done);
                 expect(spyOnError.mock.calls).toEqual([
-                  ["Token not found"],
-                  ["cannot GET /oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp (500)"],
-                  ["Internal Server Error"]
+                    ['Token not found'],
+                    ['cannot GET /oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp (500)'],
+                    ['Internal Server Error'],
                 ]);
                 expect(res.notFound).toBeFalsy();
                 expect(res.serverError).toBeTruthy();
