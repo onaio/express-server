@@ -62,6 +62,6 @@ export const EXPRESS_KEYCLOAK_LOGOUT_URL =
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
 export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
-export const EXPRESS_LOGS_FILE_PATH = '/tmp/logs/reveal-express-server.log';
+export const EXPRESS_LOGS_FILE_PATH = '/var/log/reveal-express-server.log';
 
-export const EXPRESS_COMBINED_LOGS_FILE_PATH = '/tmp/logs/express-server-combined.log';
+export const EXPRESS_COMBINED_LOGS_FILE_PATH = '/var/log/express-server-combined.log';
