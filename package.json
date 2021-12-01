@@ -1,7 +1,7 @@
 {
     "license": "Apache-2.0",
     "scripts": {
-        "clean": "rimraf dist/*",
+        "clean": "rimraf dist/* logs",
         "tsc": "tsc",
         "build": "npm-run-all clean tsc",
         "dev:start": "npm-run-all build start",
