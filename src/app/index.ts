@@ -53,6 +53,7 @@ const loginURL = EXPRESS_SESSION_LOGIN_URL;
 const sessionName = EXPRESS_SESSION_NAME;
 
 const app = express();
+const test = 'circleCi'
 
 app.use(compression()); // Compress all routes
 app.use(helmet()); // protect against well known vulnerabilities
