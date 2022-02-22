@@ -9,19 +9,22 @@
         "start": "node dist",
         "test": "jest",
         "test:coverage": "jest --coverage --no-cache",
-        "lint": "tsc --noEmit && eslint src/**/*.{js,ts} --quiet"
+        "lint": "eslint src/**/*.{js,ts} --max-warnings 0"
     },
     "husky": {
         "hooks": {
-            "pre-commit": "tsc --noEmit && lint-staged"
+            "pre-commit": "lint-staged"
         }
     },
     "lint-staged": {
         "*.{js,ts}": [
-            "eslint --fix"
+            "eslint --fix --max-warnings 0"
         ],
         "*.{json,md}": [
             "prettier --write"
+        ],
+        "*.{snap, test.tsx}": [
+            "eslint"
         ]
     },
     "dependencies": {
@@ -29,6 +32,7 @@
         "compression": "^1.7.4",
         "cookie-parser": "^1.4.6",
         "dotenv": "^16.0.0",
+        "eslint-config-airbnb": "^19.0.4",
         "express": "^4.17.3",
         "express-session": "^1.17.2",
         "helmet": "^5.0.2",
@@ -68,8 +72,12 @@
         "@typescript-eslint/parser": "^5.12.1",
         "coveralls": "^3.1.1",
         "eslint": "^8.9.0",
+        "eslint-config-airbnb-typescript": "^16.1.0",
         "eslint-config-prettier": "^8.4.0",
+        "eslint-config-typestrict": "^1.0.2",
+        "eslint-plugin-import": "^2.25.4",
         "eslint-plugin-prettier": "^4.0.0",
+        "eslint-plugin-sonarjs": "^0.12.0",
         "jest": "^27.5.1",
         "mockdate": "^3.0.5",
         "nock": "^13.2.4",
