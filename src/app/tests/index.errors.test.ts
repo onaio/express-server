@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import ClientOauth2 from 'client-oauth2';
 import request from 'supertest';
 import app from '../index';
 
-const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp';
+const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=openssh';
 
 const panic = (err: Error, done: jest.DoneCallback): void => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (err) {
     done(err);
   }
@@ -19,6 +19,7 @@ jest.mock('client-oauth2', () => {
       this.client = client;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public async getToken() {
       throw new Error('Token not found');
     }
@@ -26,6 +27,7 @@ jest.mock('client-oauth2', () => {
 
   // tslint:disable-next-line: max-classes-per-file
   return class ClientOAuth2 {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public code = (() => new CodeFlow(this as any))();
 
     public options: ClientOauth2.Options;
@@ -47,7 +49,7 @@ describe('src/index.ts', () => {
     jest.resetAllMocks();
   });
 
-  it('E2E: oauth/opensrp/callback handles error correctly', async (done) => {
+  it('E2E: oauth/opensea/callback handles error correctly', (done) => {
     const spyOnError = jest.spyOn(global, 'Error');
 
     request(app)
@@ -62,6 +64,7 @@ describe('src/index.ts', () => {
         expect(res.notFound).toBeFalsy();
         expect(res.serverError).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
 });

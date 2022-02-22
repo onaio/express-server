@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-redeclare */
+/* eslint-disable @typescript-eslint/naming-convention */
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -79,8 +81,9 @@ export const EXPRESS_OPENSRP_LOGOUT_URL =
   process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://opensrp-stage.smartregister.org/opensrp/logout.do';
 export type EXPRESS_OPENSRP_LOGOUT_URL = typeof EXPRESS_OPENSRP_LOGOUT_URL;
 
-export const { EXPRESS_KEYCLOAK_LOGOUT_URL } = process.env;
-('https://keycloak-stage.smartregister.org/auth/realms/opensrp-web-stage/protocol/openid-connect/logout');
+export const EXPRESS_KEYCLOAK_LOGOUT_URL =
+  process.env.EXPRESS_KEYCLOAK_LOGOUT_URL ||
+  'https://keycloak-stage.smartregister.org/auth/realms/opensrp-web-stage/protocol/openid-connect/logout';
 export type EXPRESS_KEYCLOAK_LOGOUT_URL = typeof EXPRESS_KEYCLOAK_LOGOUT_URL;
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = Number(process.env.EXPRESS_MAXIMUM_LOGS_FILE_SIZE || 5242880); // 5MB

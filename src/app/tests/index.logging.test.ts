@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import MockDate from 'mockdate';
 import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
@@ -11,6 +10,7 @@ const authorizationUri = 'http://reveal-stage.smartregister.org/opensrp/oauth/';
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp';
 
 const panic = (err: Error, done: jest.DoneCallback): void => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (err) {
     done(err);
   }
@@ -28,10 +28,12 @@ jest.mock('client-oauth2', () => {
       this.client = client;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public getUri() {
       return authorizationUri;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public async getToken() {
       throw new Error(errorText);
     }
@@ -53,6 +55,7 @@ jest.mock('client-oauth2', () => {
       this.client = client;
     }
 
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
     public sign(_: any) {
       return { url: 'http://someUrl.com' };
     }
@@ -64,8 +67,10 @@ jest.mock('client-oauth2', () => {
 
   // tslint:disable-next-line: max-classes-per-file
   return class ClientOAuth2 {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public code = (() => new CodeFlow(this as any))();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public token = (() => new TokenFlow(this as any))();
 
     public options: ClientOauth2.Options;
@@ -107,10 +112,11 @@ describe('src/index.ts', () => {
           '::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] "GET /oauth/state HTTP/1.1" 200 26 "-" "node-superagent/3.8.3"\n',
         );
         done();
-      });
+      })
+      .catch(() => {});
   });
 
-  it('Logs app errors', async (done) => {
+  it('Logs app errors', (done) => {
     MockDate.set('1/1/2020');
     const errorSpy = jest.spyOn(winstonLogger, 'error');
     JSON.parse = (body) => {
@@ -131,11 +137,13 @@ describe('src/index.ts', () => {
         // because the other part points to directories and specific file numbers were the error occured.
         // This will be unstable to test because any additional code changing
         // the line were the error occures leads to failure of the test
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((errorSpy.mock.calls[0][0] as any).split('at CodeFlow')[0]).toEqual(
           /* eslint-disable-next-line no-useless-escape */
           `500 - ${errorText}-\"Error: ${errorText}\\n    `,
         );
         done();
-      });
+      })
+      .catch(() => {});
   });
 });

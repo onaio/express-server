@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 export const parsedApiResponse = {
   preferredName: 'Superset User',
   roles: ['Provider'],

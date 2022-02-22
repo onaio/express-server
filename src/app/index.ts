@@ -38,7 +38,7 @@ import {
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
-type dictionary = { [key: string]: any };
+type Dictionary = { [key: string]: unknown };
 
 const opensrpAuth = new ClientOAuth2({
   accessTokenUri: EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
@@ -106,7 +106,7 @@ const handleError = (err: HttpException, res: express.Response) => {
     return res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
   }
   const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     message,
     status: 'error',
     statusCode,
@@ -130,22 +130,20 @@ const oauthLogin = (_: express.Request, res: express.Response) => {
 const processUserInfo = (
   req: express.Request,
   res: express.Response,
-  authDetails: dictionary,
-  userDetails?: dictionary,
+  authDetails: Dictionary,
+  userDetails?: Dictionary,
   isRefresh?: boolean,
 ) => {
-  let userInfo = userDetails;
+  // get user details from session. will be needed when refreshing token
+  const userInfo = userDetails ?? req.session.preloadedState?.session?.extraData ?? {};
   const date = new Date(Date.now());
   const sessionExpiryTime = req.session.preloadedState?.session_expires_at;
   const sessionExpiresAt = isRefresh
     ? sessionExpiryTime
     : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
-  if (!userDetails) {
-    // get user details from session. will be needed when refreshing token
-    userInfo = req.session.preloadedState?.session?.extraData || {};
-  }
   userInfo.oAuth2Data = authDetails;
   const sessionState = getOpenSRPUserInfo(userInfo);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (sessionState) {
     const gatekeeperState = {
       success: true,
@@ -154,14 +152,13 @@ const processUserInfo = (
     const preloadedState = {
       gatekeeper: gatekeeperState,
       session: sessionState,
-      /* eslint-disable @typescript-eslint/camelcase */
       session_expires_at: sessionExpiresAt,
     };
     req.session.preloadedState = preloadedState;
-    const expireAfterMs = sessionState.extraData.oAuth2Data.refresh_expires_in * 1000;
+    const expireAfterMs = (sessionState.extraData?.oAuth2Data.refresh_expires_in as number) * 1000;
     req.session.cookie.maxAge = expireAfterMs;
     // you have to save the session manually for POST requests like this one
-    req.session.save(() => void 0);
+    req.session.save(() => undefined);
     // when refreshing token we only need the preloaded state
     if (isRefresh) {
       return preloadedState;
@@ -187,6 +184,7 @@ const refreshToken = (req: express.Request, res: express.Response, next: express
     return res.status(500).send({ message: SESSION_IS_EXPIRED });
   }
   const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
   const sessionExpiryTime = req.session.preloadedState?.session_expires_at;
   if (!accessToken || !refreshToken || !sessionExpiryTime) {
@@ -226,14 +224,15 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
           url,
         }),
         (error: Error, _: request.Response, body: string) => {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (error) {
             next(error); // pass error to express
           }
-          let apiResponse: dictionary;
+          let apiResponse: Dictionary;
           try {
             apiResponse = JSON.parse(body);
             processUserInfo(req, res, user.data, apiResponse);
-          } catch (_) {
+          } catch (__) {
             res.redirect('/logout?serverLogout=true');
           }
         },
@@ -265,7 +264,7 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
   }
   const localNextPath = nextPath || '/';
 
-  req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
+  return req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
 };
 
 const logout = async (req: express.Request, res: express.Response) => {
@@ -285,7 +284,7 @@ const logout = async (req: express.Request, res: express.Response) => {
     const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`;
     res.redirect(keycloakLogoutFullPath);
   } else {
-    req.session.destroy(() => void 0);
+    req.session.destroy(() => undefined);
     res.clearCookie(sessionName);
     res.redirect(loginURL);
   }
@@ -316,6 +315,7 @@ export const errorHandler = (
   err: HttpException,
   _: express.Request,
   res: express.Response,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   __: express.NextFunction,
 ) => {
   winstonLogger.error(`${err.statusCode || 500} - ${err.message}-${JSON.stringify(err.stack)}`);

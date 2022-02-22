@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import fetch from 'node-fetch';
 import MockDate from 'mockdate';
 import ClientOauth2 from 'client-oauth2';
@@ -24,6 +23,7 @@ const authorizationUri = 'http://reveal-stage.smartregister.org/opensrp/oauth/';
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp';
 
 const panic = (err: Error, done: jest.DoneCallback): void => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (err) {
     done(err);
   }
@@ -41,6 +41,7 @@ jest.mock('client-oauth2', () => {
       this.client = client;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public getUri() {
       return authorizationUri;
     }
@@ -66,6 +67,7 @@ jest.mock('client-oauth2', () => {
       this.client = client;
     }
 
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
     public sign(_: any) {
       return { url: 'http://someUrl.com' };
     }
@@ -77,8 +79,10 @@ jest.mock('client-oauth2', () => {
 
   // tslint:disable-next-line: max-classes-per-file
   return class ClientOAuth2 {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public code = (() => new CodeFlow(this as any))();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public token = (() => new TokenFlow(this as any))();
 
     public options: ClientOauth2.Options;
@@ -97,6 +101,7 @@ jest.mock('client-oauth2', () => {
 describe('src/index.ts', () => {
   const actualJsonParse = JSON.parse;
   let sessionString: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let cookie: { [key: string]: any };
 
   afterEach(() => {
@@ -110,11 +115,13 @@ describe('src/index.ts', () => {
       .expect(200)
       .expect('Do you mind')
       .end((err: Error) => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (err) {
           throw err;
         }
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('oauth/opensrp redirects to auth-server', (done) => {
@@ -127,10 +134,11 @@ describe('src/index.ts', () => {
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
 
-  it('E2E: oauth/opensrp/callback works correctly', async (done) => {
+  it('E2E: oauth/opensrp/callback works correctly', (done) => {
     MockDate.set('1/1/2020');
     JSON.parse = (body) => {
       if (body === '{}') {
@@ -146,6 +154,7 @@ describe('src/index.ts', () => {
         expect(res.header.location).toEqual(EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL);
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
+        // eslint-disable-next-line prefer-destructuring
         sessionString = res.header['set-cookie'][0].split(';')[0];
         cookie = extractCookies(res.header);
         // expect that cookie will expire in: now(a date mocked to be in the future) + token.expires_in
@@ -155,7 +164,8 @@ describe('src/index.ts', () => {
           Path: '/',
         });
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/oauth/state works correctly without cookie', (done) => {
@@ -165,7 +175,8 @@ describe('src/index.ts', () => {
         panic(err, done);
         expect(res.body).toEqual(unauthorized);
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/oauth/state works correctly with cookie', (done) => {
@@ -178,7 +189,8 @@ describe('src/index.ts', () => {
         panic(err, done);
         expect(res.body).toEqual(oauthState);
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/refresh/token works correctly', (done) => {
@@ -191,7 +203,8 @@ describe('src/index.ts', () => {
         expect(res.status).toEqual(500);
         expect(res.body).toEqual({ message: 'Access token or Refresh token not found' });
         done();
-      });
+      })
+      .catch(() => {});
 
     // call refresh token
     request(app)
@@ -201,7 +214,8 @@ describe('src/index.ts', () => {
         panic(err, done);
         expect(res.body).toEqual(oauthState);
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/refresh/token works correctly when session life time is exceeded', (done) => {
@@ -216,7 +230,8 @@ describe('src/index.ts', () => {
           message: 'Session is Expired',
         });
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/refresh/token does not change session expiry date', (done) => {
@@ -229,7 +244,8 @@ describe('src/index.ts', () => {
         panic(err, done);
         expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('Accessing login url when next path is undefined and logged in', (done) => {
@@ -243,7 +259,8 @@ describe('src/index.ts', () => {
         expect(res.header.location).toEqual('/');
         expect(res.redirect).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
   it('Accessing login url when next Path is defined and logged in', (done) => {
     // when logged in and nextPath is not provided, redirect to home
@@ -256,10 +273,12 @@ describe('src/index.ts', () => {
         expect(res.header.location).toEqual('/teams');
         expect(res.redirect).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('logs user out from opensrp and calls keycloak', (done) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (fetch as any).mockImplementation(() => Promise.resolve('successfull'));
     request(app)
       .get('/logout?serverLogout=true')
@@ -278,10 +297,11 @@ describe('src/index.ts', () => {
           method: 'GET',
         });
         done();
-      });
+      })
+      .catch(() => {});
   });
 
-  it('oauth/opensrp/callback works correctly if response is not stringfied JSON', async (done) => {
+  it('oauth/opensrp/callback works correctly if response is not stringfied JSON', (done) => {
     MockDate.set('1/1/2020');
     JSON.parse = (body) => {
       if (body === '{}') {
@@ -298,7 +318,8 @@ describe('src/index.ts', () => {
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('logs user out with cookie', (done) => {
@@ -316,8 +337,10 @@ describe('src/index.ts', () => {
             panic(e, done);
             expect(r.body).toEqual(unauthorized);
             done();
-          });
-      });
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
   });
 
   it('Accessing login url when you are logged out', (done) => {
@@ -330,12 +353,13 @@ describe('src/index.ts', () => {
         expect(res.header.location).toEqual(EXPRESS_FRONTEND_LOGIN_URL);
         expect(res.redirect).toBeTruthy();
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('/refresh/token works correctly when refresh is not allowed', (done) => {
     MockDate.set('1/1/2020');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
     const envModule = require('../../configs/envs');
     envModule.EXPRESS_ALLOW_TOKEN_RENEWAL = false;
     // call refresh token
@@ -348,7 +372,8 @@ describe('src/index.ts', () => {
           message: 'Session is Expired',
         });
         done();
-      });
+      })
+      .catch(() => {});
   });
 
   it('handle error middleware works', (done) => {
