@@ -13,15 +13,18 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn tsc --noEmit && yarn test"
     }
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "eslint --fix --max-warnings 0"
+      "eslint --fix --max-warnings 0",
+      "git add"
     ],
     "*.{json,md,js,ts}": [
-      "prettier --write"
+      "prettier --write",
+      "git add"
     ],
     "*.{snap, test.tsx}": [
       "eslint"
@@ -79,6 +82,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-sonarjs": "^0.12.0",
     "jest": "^27.5.1",
+    "lint-staged": "^12.3.4",
     "mockdate": "^3.0.5",
     "nock": "^13.2.4",
     "nodemon": "^2.0.15",
