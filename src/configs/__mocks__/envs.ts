@@ -27,10 +27,10 @@ export type FRONTEND_OPENSRP_CALLBACK_URL = typeof FRONTEND_OPENSRP_CALLBACK_URL
 export const EXPRESS_OPENSRP_OAUTH_STATE = 'opensrp';
 export type EXPRESS_OPENSRP_OAUTH_STATE = typeof EXPRESS_OPENSRP_OAUTH_STATE;
 
-export const EXPRESS_OPENSRP_CLIENT_ID = process.env.EXPRESS_OPENSRP_CLIENT_ID;
+export const { EXPRESS_OPENSRP_CLIENT_ID } = process.env;
 export type EXPRESS_OPENSRP_CLIENT_ID = typeof EXPRESS_OPENSRP_CLIENT_ID;
 
-export const EXPRESS_OPENSRP_CLIENT_SECRET = process.env.EXPRESS_OPENSRP_CLIENT_SECRET;
+export const { EXPRESS_OPENSRP_CLIENT_SECRET } = process.env;
 export type EXPRESS_OPENSRP_CLIENT_SECRET = typeof EXPRESS_OPENSRP_CLIENT_SECRET;
 
 export const EXPRESS_PORT = 3000;
@@ -58,7 +58,7 @@ export const EXPRESS_MAXIMUM_SESSION_LIFE_TIME = 3600;
 export const EXPRESS_SERVER_LOGOUT_URL = 'http://localhost:3000/logout';
 export const EXPRESS_OPENSRP_LOGOUT_URL = 'https://reveal-stage.smartregister.org/opensrp/logout.do';
 export const EXPRESS_KEYCLOAK_LOGOUT_URL =
-    'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
+  'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout';
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = 5242880;
 export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;

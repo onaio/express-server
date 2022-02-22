@@ -10,19 +10,19 @@ dotenv.config();
  * since the express backend is meant to be generic and api-agnostic
  */
 export const EXPRESS_OPENSRP_ACCESS_TOKEN_URL =
-    process.env.EXPRESS_OPENSRP_ACCESS_TOKEN_URL || 'https://opensrp-stage.smartregister.org/opensrp/oauth/token';
+  process.env.EXPRESS_OPENSRP_ACCESS_TOKEN_URL || 'https://opensrp-stage.smartregister.org/opensrp/oauth/token';
 export type EXPRESS_OPENSRP_ACCESS_TOKEN_URL = typeof EXPRESS_OPENSRP_ACCESS_TOKEN_URL;
 
 export const EXPRESS_OPENSRP_AUTHORIZATION_URL =
-    process.env.EXPRESS_OPENSRP_AUTHORIZATION_URL || 'https://opensrp-stage.smartregister.org/opensrp/oauth/authorize';
+  process.env.EXPRESS_OPENSRP_AUTHORIZATION_URL || 'https://opensrp-stage.smartregister.org/opensrp/oauth/authorize';
 export type EXPRESS_OPENSRP_AUTHORIZATION_URL = typeof EXPRESS_OPENSRP_AUTHORIZATION_URL;
 
 export const EXPRESS_OPENSRP_CALLBACK_URL =
-    process.env.EXPRESS_OPENSRP_CALLBACK_URL || 'http://localhost:3000/oauth/callback/OpenSRP/';
+  process.env.EXPRESS_OPENSRP_CALLBACK_URL || 'http://localhost:3000/oauth/callback/OpenSRP/';
 export type EXPRESS_OPENSRP_CALLBACK_URL = typeof EXPRESS_OPENSRP_CALLBACK_URL;
 
 export const EXPRESS_OPENSRP_USER_URL =
-    process.env.EXPRESS_OPENSRP_USER_URL || 'https://opensrp-stage.smartregister.org/opensrp/user-details';
+  process.env.EXPRESS_OPENSRP_USER_URL || 'https://opensrp-stage.smartregister.org/opensrp/user-details';
 export type EXPRESS_OPENSRP_USER_URL = typeof EXPRESS_OPENSRP_USER_URL;
 
 export const EXPRESS_SESSION_FILESTORE_PATH = process.env.EXPRESS_SESSION_FILESTORE_PATH || '/tmp/express-sessions';
@@ -35,16 +35,16 @@ export const EXPRESS_SESSION_LOGIN_URL = process.env.EXPRESS_SESSION_LOGIN_URL |
 export type EXPRESS_SESSION_LOGIN_URL = typeof EXPRESS_SESSION_LOGIN_URL;
 
 export const EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL =
-    process.env.EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL || '/fe/oauth/callback/opensrp';
+  process.env.EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL || '/fe/oauth/callback/opensrp';
 export type EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL = typeof EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL;
 
 export const EXPRESS_OPENSRP_OAUTH_STATE = process.env.EXPRESS_OPENSRP_OAUTH_STATE || 'opensrp';
 export type EXPRESS_OPENSRP_OAUTH_STATE = typeof EXPRESS_OPENSRP_OAUTH_STATE;
 
-export const EXPRESS_OPENSRP_CLIENT_ID = process.env.EXPRESS_OPENSRP_CLIENT_ID;
+export const { EXPRESS_OPENSRP_CLIENT_ID } = process.env;
 export type EXPRESS_OPENSRP_CLIENT_ID = typeof EXPRESS_OPENSRP_CLIENT_ID;
 
-export const EXPRESS_OPENSRP_CLIENT_SECRET = process.env.EXPRESS_OPENSRP_CLIENT_SECRET;
+export const { EXPRESS_OPENSRP_CLIENT_SECRET } = process.env;
 export type EXPRESS_OPENSRP_CLIENT_SECRET = typeof EXPRESS_OPENSRP_CLIENT_SECRET;
 
 export const EXPRESS_PORT = parseInt(process.env.EXPRESS_PORT || '3000', 10);
@@ -60,7 +60,7 @@ export const EXPRESS_SESSION_PATH = process.env.EXPRESS_SESSION_PATH || '/';
 export type EXPRESS_SESSION_PATH = typeof EXPRESS_SESSION_PATH;
 
 export const EXPRESS_REACT_BUILD_PATH =
-    process.env.EXPRESS_REACT_BUILD_PATH || path.resolve(path.resolve(), '../build');
+  process.env.EXPRESS_REACT_BUILD_PATH || path.resolve(path.resolve(), '../build');
 export type EXPRESS_REACT_BUILD_PATH = typeof EXPRESS_REACT_BUILD_PATH;
 
 export const EXPRESS_FRONTEND_LOGIN_URL = process.env.EXPRESS_FRONTEND_LOGIN_URL || '/fe/login';
@@ -76,12 +76,11 @@ export const EXPRESS_SERVER_LOGOUT_URL = process.env.EXPRESS_SERVER_LOGOUT_URL |
 export type EXPRESS_SERVER_LOGOUT_URL = typeof EXPRESS_SERVER_LOGOUT_URL;
 
 export const EXPRESS_OPENSRP_LOGOUT_URL =
-    process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://opensrp-stage.smartregister.org/opensrp/logout.do';
+  process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://opensrp-stage.smartregister.org/opensrp/logout.do';
 export type EXPRESS_OPENSRP_LOGOUT_URL = typeof EXPRESS_OPENSRP_LOGOUT_URL;
 
-export const EXPRESS_KEYCLOAK_LOGOUT_URL =
-    process.env.EXPRESS_KEYCLOAK_LOGOUT_URL ||
-    'https://keycloak-stage.smartregister.org/auth/realms/opensrp-web-stage/protocol/openid-connect/logout';
+export const { EXPRESS_KEYCLOAK_LOGOUT_URL } = process.env;
+('https://keycloak-stage.smartregister.org/auth/realms/opensrp-web-stage/protocol/openid-connect/logout');
 export type EXPRESS_KEYCLOAK_LOGOUT_URL = typeof EXPRESS_KEYCLOAK_LOGOUT_URL;
 
 export const EXPRESS_MAXIMUM_LOGS_FILE_SIZE = Number(process.env.EXPRESS_MAXIMUM_LOGS_FILE_SIZE || 5242880); // 5MB
@@ -94,5 +93,5 @@ export const EXPRESS_LOGS_FILE_PATH = process.env.EXPRESS_LOGS_FILE_PATH || './l
 export type EXPRESS_LOGS_FILE_PATH = typeof EXPRESS_LOGS_FILE_PATH;
 
 export const EXPRESS_COMBINED_LOGS_FILE_PATH =
-    process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
+  process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_PATH;
