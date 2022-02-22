@@ -27,6 +27,8 @@ module.exports = {
   plugins: ['@typescript-eslint', 'prettier'],
   rules: {
     'prettier/prettier': 2,
+    'consistent-return': 0,
+    'max-classes-per-file': 0,
     '@typescript-eslint/naming-convention': [
       'error',
       // variableLike - matches the same as variable, function and parameter
