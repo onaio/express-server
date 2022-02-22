@@ -9,25 +9,18 @@
     "start": "node dist",
     "test": "jest",
     "test:coverage": "jest --coverage --no-cache",
-    "lint": "eslint src/**/*.{js,ts} --max-warnings 0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn tsc --noEmit && yarn test"
-    }
+    "lint": "eslint src/**/*.{js,ts} --max-warnings 0",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "eslint --fix --max-warnings 0",
-      "git add"
+      "yarn lint --fix"
     ],
     "*.{json,md,js,ts}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
-    "*.{snap, test.tsx}": [
-      "eslint"
+    "*.{snap, test.ts}": [
+      "yarn lint"
     ]
   },
   "dependencies": {
@@ -81,6 +74,7 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-sonarjs": "^0.12.0",
+    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "lint-staged": "^12.3.4",
     "mockdate": "^3.0.5",
