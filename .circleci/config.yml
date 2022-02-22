@@ -10,7 +10,7 @@ jobs:
       - image: circleci/node:12.13.0
 
         environment:
-          SKIP_PREFLIGHT_CHECK: "true"
+          SKIP_PREFLIGHT_CHECK: 'true'
 
     working_directory: ~/repo
 
