@@ -9,7 +9,7 @@
     "start": "node dist",
     "test": "jest",
     "test:coverage": "jest --coverage --no-cache",
-    "lint": "eslint src/**/*.{js,ts} --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
     "prepare": "husky install"
   },
   "lint-staged": {
