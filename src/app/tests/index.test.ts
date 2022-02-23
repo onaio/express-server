@@ -119,9 +119,11 @@ describe('src/index.ts', () => {
         if (err) {
           throw err;
         }
-        done();
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        done();
+      });
   });
 
   it('oauth/opensrp redirects to auth-server', (done) => {

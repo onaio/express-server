@@ -63,8 +63,10 @@ describe('src/index.ts', () => {
         ]);
         expect(res.notFound).toBeFalsy();
         expect(res.serverError).toBeTruthy();
-        done();
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        done();
+      });
   });
 });
