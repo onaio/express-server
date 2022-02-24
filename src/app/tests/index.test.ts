@@ -30,7 +30,16 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
-jest.mock('../../configs/winston');
+// mock out winston logger and stream methods - reduce log noise in test output
+jest.mock('../../configs/winston', () => ({
+  winstonLogger: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+  winstonStream: {
+    write: jest.fn(),
+  },
+}));
 jest.mock('node-fetch');
 
 jest.mock('client-oauth2', () => {
@@ -107,6 +116,7 @@ describe('src/index.ts', () => {
   afterEach(() => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('serves the build.index.html file', (done) => {
@@ -114,13 +124,9 @@ describe('src/index.ts', () => {
       .get('/')
       .expect(200)
       .expect('Do you mind\n')
-      .end((err: Error) => {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (err) {
-          throw err;
-        }
+      .catch((err: Error) => {
+        throw err;
       })
-      .catch(() => {})
       .finally(() => {
         done();
       });
@@ -130,14 +136,15 @@ describe('src/index.ts', () => {
     request(app)
       .get('/oauth/opensrp')
       .expect(302)
-      .end((err: Error, res) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual(authorizationUri);
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('E2E: oauth/opensrp/callback works correctly', (done) => {
@@ -151,8 +158,7 @@ describe('src/index.ts', () => {
 
     request(app)
       .get(oauthCallbackUri)
-      .end((err, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual(EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL);
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
@@ -167,18 +173,21 @@ describe('src/index.ts', () => {
         });
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/oauth/state works correctly without cookie', (done) => {
     request(app)
       .get('/oauth/state')
-      .end((err, res) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.body).toEqual(unauthorized);
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/oauth/state works correctly with cookie', (done) => {
@@ -186,13 +195,13 @@ describe('src/index.ts', () => {
     request(app)
       .get('/oauth/state')
       .set('cookie', sessionString)
-      // .send()
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.body).toEqual(oauthState);
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/refresh/token works correctly', (done) => {
@@ -200,24 +209,26 @@ describe('src/index.ts', () => {
     // when no session is found
     request(app)
       .get('/refresh/token')
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.status).toEqual(500);
         expect(res.body).toEqual({ message: 'Access token or Refresh token not found' });
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
 
     // call refresh token
     request(app)
       .get('/refresh/token')
       .set('cookie', sessionString)
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.body).toEqual(oauthState);
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/refresh/token works correctly when session life time is exceeded', (done) => {
@@ -225,15 +236,16 @@ describe('src/index.ts', () => {
     request(app)
       .get('/refresh/token')
       .set('cookie', sessionString)
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.status).toEqual(500);
         expect(res.body).toEqual({
           message: 'Session is Expired',
         });
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/refresh/token does not change session expiry date', (done) => {
@@ -242,12 +254,13 @@ describe('src/index.ts', () => {
     request(app)
       .get('/refresh/token')
       .set('cookie', sessionString)
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.body.session_expires_at).toEqual(oauthState.session_expires_at);
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('Accessing login url when next path is undefined and logged in', (done) => {
@@ -256,13 +269,14 @@ describe('src/index.ts', () => {
       .get('/login')
       .set('cookie', sessionString)
       .expect(302)
-      .end((err: Error, res) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual('/');
         expect(res.redirect).toBeTruthy();
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
   it('Accessing login url when next Path is defined and logged in', (done) => {
     // when logged in and nextPath is not provided, redirect to home
@@ -270,13 +284,14 @@ describe('src/index.ts', () => {
       .get('/login?next=%2Fteams')
       .set('cookie', sessionString)
       .expect(302)
-      .end((err: Error, res) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual('/teams');
         expect(res.redirect).toBeTruthy();
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('logs user out from opensrp and calls keycloak', (done) => {
@@ -285,8 +300,7 @@ describe('src/index.ts', () => {
     request(app)
       .get('/logout?serverLogout=true')
       .set('Cookie', sessionString)
-      .end((err, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`);
         expect(res.redirect).toBeTruthy();
         expect(fetch).toHaveBeenCalledTimes(1);
@@ -300,7 +314,9 @@ describe('src/index.ts', () => {
         });
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('oauth/opensrp/callback works correctly if response is not stringfied JSON', (done) => {
@@ -314,35 +330,38 @@ describe('src/index.ts', () => {
 
     request(app)
       .get(oauthCallbackUri)
-      .end((err, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual('/logout?serverLogout=true');
         expect(res.notFound).toBeFalsy();
         expect(res.redirect).toBeTruthy();
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('logs user out with cookie', (done) => {
     request(app)
       .get('/logout')
       .set('Cookie', sessionString)
-      .end((err, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual(EXPRESS_SESSION_LOGIN_URL);
         expect(res.redirect).toBeTruthy();
         // check that session is revoked
         request(app)
           .get('/oauth/state')
-          .end((e: Error, r: request.Response) => {
-            panic(e, done);
+          .then((r: request.Response) => {
             expect(r.body).toEqual(unauthorized);
             done();
           })
-          .catch(() => {});
+          .catch((e: Error) => {
+            panic(e, done);
+          });
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('Accessing login url when you are logged out', (done) => {
@@ -350,13 +369,14 @@ describe('src/index.ts', () => {
     request(app)
       .get('/login')
       .expect(302)
-      .end((err: Error, res) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.header.location).toEqual(EXPRESS_FRONTEND_LOGIN_URL);
         expect(res.redirect).toBeTruthy();
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('/refresh/token works correctly when refresh is not allowed', (done) => {
@@ -367,19 +387,26 @@ describe('src/index.ts', () => {
     // call refresh token
     request(app)
       .get('/refresh/token')
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.status).toEqual(500);
         expect(res.body).toEqual({
           message: 'Session is Expired',
         });
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 
   it('handle error middleware works', (done) => {
     const winston = jest.spyOn(winstonLogger, 'error');
+    const res = {} as express.Response;
+    res.redirect = jest.fn();
+    res.status = jest.fn().mockImplementation(() => {
+      return { json: jest.fn() };
+    });
+
     errorHandler(
       {
         name: 'error',
@@ -387,27 +414,14 @@ describe('src/index.ts', () => {
         message: 'resource owner or authorization server denied the request',
       },
       {} as express.Request,
-      {
-        redirect(url: string) {
-          this.url = url;
-        },
-      } as express.Response,
+      res,
       {} as express.NextFunction,
     );
 
     errorHandler(
       { name: 'error', statusCode: 500, message: 'generic error' },
       {} as express.Request,
-      {
-        status(status) {
-          this.code = status;
-          return this;
-        },
-        json(body) {
-          this.body = JSON.stringify(body);
-          return this;
-        },
-      } as express.Response,
+      res,
       {} as express.NextFunction,
     );
 

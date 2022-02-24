@@ -17,6 +17,16 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
+// mock out winston logger and stream methods - reduce log noise in test output
+jest.mock('../../configs/winston', () => ({
+  winstonLogger: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+  winstonStream: {
+    write: jest.fn(),
+  },
+}));
 
 const errorText = 'Token not found';
 
@@ -95,6 +105,7 @@ describe('src/index.ts', () => {
   afterEach(() => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('Logs app activities', (done) => {
@@ -103,18 +114,16 @@ describe('src/index.ts', () => {
     // pick any route
     request(app)
       .get('/oauth/state')
-      .end(() => {
+      .then((res) => {
         // one by winston, other by morgan
-        expect(logsSpy).toHaveBeenCalledTimes(2);
+        expect(logsSpy).toHaveBeenCalledTimes(1);
         expect(logsSpy).toHaveBeenCalledWith('Not authorized');
-        expect(logsSpy).toHaveBeenCalledWith(
-          /* eslint-disable-next-line no-useless-escape */
-          `"::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] \"GET /oauth/state HTTP/1.1\" 200 26 \"-\" \"-\"`,
-        );
-      })
-      .catch(() => {})
-      .finally(() => {
+        expect(res.status).toBe(200);
+        expect(res.text).toMatch('Not authorized');
         done();
+      })
+      .catch((err) => {
+        panic(err, done);
       });
   });
 
@@ -131,8 +140,7 @@ describe('src/index.ts', () => {
 
     request(app)
       .get(oauthCallbackUri)
-      .end((err, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(res.notFound).toBeFalsy();
         expect(errorSpy).toHaveBeenCalledTimes(1);
         // We will only check part of the error
@@ -146,6 +154,8 @@ describe('src/index.ts', () => {
         );
         done();
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        panic(err, done);
+      });
   });
 });

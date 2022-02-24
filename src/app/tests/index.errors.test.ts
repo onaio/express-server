@@ -11,6 +11,16 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
   }
 };
 
+// mock out winston logger and stream methods - reduce log noise in test output
+jest.mock('../../configs/winston', () => ({
+  winstonLogger: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+  winstonStream: {
+    write: jest.fn(),
+  },
+}));
 jest.mock('client-oauth2', () => {
   class CodeFlow {
     private client: ClientOauth2;
@@ -47,6 +57,7 @@ describe('src/index.ts', () => {
   afterEach(() => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('E2E: oauth/opensea/callback handles error correctly', (done) => {
@@ -54,19 +65,18 @@ describe('src/index.ts', () => {
 
     request(app)
       .get(oauthCallbackUri)
-      .end((err: Error, res: request.Response) => {
-        panic(err, done);
+      .then((res: request.Response) => {
         expect(spyOnError.mock.calls).toEqual([
           ['Token not found'],
-          ['cannot GET /oauth/callback/OpenSRP/?code=Boi4Wz&state=opensrp (500)'],
+          ['cannot GET /oauth/callback/OpenSRP/?code=Boi4Wz&state=openssh (500)'],
           ['Internal Server Error'],
         ]);
         expect(res.notFound).toBeFalsy();
         expect(res.serverError).toBeTruthy();
-      })
-      .catch(() => {})
-      .finally(() => {
         done();
+      })
+      .catch((err: Error) => {
+        panic(err, done);
       });
   });
 });
