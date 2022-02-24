@@ -109,7 +109,7 @@ describe('src/index.ts', () => {
         expect(logsSpy).toHaveBeenCalledWith('Not authorized');
         expect(logsSpy).toHaveBeenCalledWith(
           /* eslint-disable-next-line no-useless-escape */
-          '::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] "GET /oauth/state HTTP/1.1" 200 26 "-" "node-superagent/3.8.3"\n',
+          `"::ffff:127.0.0.1 - - [01/Jan/2020:00:00:00 +0000] \"GET /oauth/state HTTP/1.1\" 200 26 \"-\" \"-\"`,
         );
       })
       .catch(() => {})

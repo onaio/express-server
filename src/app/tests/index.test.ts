@@ -113,7 +113,7 @@ describe('src/index.ts', () => {
     request(app)
       .get('/')
       .expect(200)
-      .expect('Do you mind')
+      .expect('Do you mind\n')
       .end((err: Error) => {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (err) {
