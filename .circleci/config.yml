@@ -7,10 +7,10 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/node:12.13.0
+      - image: cimg/node:16.14.0
 
         environment:
-          SKIP_PREFLIGHT_CHECK: "true"
+          SKIP_PREFLIGHT_CHECK: 'true'
 
     working_directory: ~/repo
 
