@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import session from 'express-session';
 import helmet from 'helmet';
-import { trimStart } from 'lodash';
 import fetch from 'node-fetch';
 import morgan from 'morgan';
 import path from 'path';
@@ -258,7 +257,11 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
   const parsedUrl = parse(req.originalUrl);
   const searchParam = parsedUrl.search;
   if (searchParam) {
-    const searchString = trimStart(searchParam, '?');
+    let searchString = searchParam;
+    // remove the leading '?'
+    if (searchParam.charAt(0) === '?') {
+      searchString = searchParam.replace('?', '');
+    }
     const searchParams = querystring.parse(searchString);
     nextPath = searchParams.next as string | undefined;
   }
