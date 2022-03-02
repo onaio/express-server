@@ -59,7 +59,7 @@ app.use(
   helmet.contentSecurityPolicy({
     // override default script-src directive to include cloudflare cdn, and github static content
     // should consider overriding this to allow individual front-ends set Content-Security-Policy on meta tags themselves if list of exceptions grow
-    // like so: <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;" >
+    // like so: <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'  https://cdnjs.cloudflare.com; 'img-src' 'self' https://github.com https://raw.githubusercontent.com;" >
     directives: {
       'script-src': ["'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"],
       'img-src': ["'self'", 'https://github.com', 'https://raw.githubusercontent.com'],
