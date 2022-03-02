@@ -54,7 +54,17 @@ const sessionName = EXPRESS_SESSION_NAME;
 const app = express();
 
 app.use(compression()); // Compress all routes
-app.use(helmet()); // protect against well known vulnerabilities
+// helps mitigate cross-site scripting attacks and other known vulnerabilities
+app.use(
+  helmet.contentSecurityPolicy({
+    // override default script-src directive to include cloudflare cdn
+    // should consider overriding this to allow individual front-ends set Content-Security-Policy on meta tags themselves if list of exceptions grow
+    // like so: <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;" >
+    directives: {
+      'script-src': ["'self'", 'https://cdnjs.cloudflare.com'],
+    },
+  }),
+);
 app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
