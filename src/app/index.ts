@@ -36,6 +36,7 @@ import {
   EXPRESS_SESSION_SECRET,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
+import { getOriginFromUrl } from '../utils';
 
 type Dictionary = { [key: string]: unknown };
 
@@ -54,7 +55,27 @@ const sessionName = EXPRESS_SESSION_NAME;
 const app = express();
 
 app.use(compression()); // Compress all routes
-app.use(helmet()); // protect against well known vulnerabilities
+// helps mitigate cross-site scripting attacks and other known vulnerabilities
+app.use(
+  helmet({
+    // override default contentSecurityPolicy directive like script-src to include cloudflare cdn and github static content
+    // might consider turning this off to allow individual front-ends set Content-Security-Policy on meta tags themselves if list grows long
+    // <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'  https://cdnjs.cloudflare.com;" >
+    contentSecurityPolicy: {
+      directives: {
+        'script-src': ["'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"],
+        'img-src': ["'self'", 'https://github.com', 'https://*.githubusercontent.com'],
+        // allow connection from keycloak and opensrp server
+        'connect-src': [
+          "'self'",
+          ...getOriginFromUrl(EXPRESS_OPENSRP_AUTHORIZATION_URL),
+          ...getOriginFromUrl(EXPRESS_OPENSRP_USER_URL),
+        ],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
 
 const FileStore = sessionFileStore(session);
