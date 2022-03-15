@@ -70,6 +70,7 @@ app.use(
           "'self'",
           ...getOriginFromUrl(EXPRESS_OPENSRP_AUTHORIZATION_URL),
           ...getOriginFromUrl(EXPRESS_OPENSRP_USER_URL),
+          ...getOriginFromUrl("https://fhir.labs.smartregister.org"),
         ],
       },
     },
