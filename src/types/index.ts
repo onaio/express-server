@@ -1,8 +1,14 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'express-session';
+import 'redis';
 
 declare module 'express-session' {
   interface Session {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     preloadedState?: Record<string, any>;
   }
+}
+
+declare module 'redis' {
+  interface RedisClient {}
 }
