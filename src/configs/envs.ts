@@ -98,3 +98,5 @@ export type EXPRESS_LOGS_FILE_PATH = typeof EXPRESS_LOGS_FILE_PATH;
 export const EXPRESS_COMBINED_LOGS_FILE_PATH =
   process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_PATH;
+
+export const { EXPRESS_REDIS_URL } = process.env;

@@ -4,6 +4,8 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import session from 'express-session';
+import connectRedis from 'connect-redis';
+import { createClient } from 'redis';
 import helmet from 'helmet';
 import fetch from 'node-fetch';
 import morgan from 'morgan';
@@ -34,6 +36,7 @@ import {
   EXPRESS_SESSION_NAME,
   EXPRESS_SESSION_PATH,
   EXPRESS_SESSION_SECRET,
+  EXPRESS_REDIS_URL,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 import { getOriginFromUrl } from '../utils';
@@ -76,14 +79,37 @@ app.use(
     crossOriginEmbedderPolicy: false,
   }),
 );
-app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
+app.use(morgan('combined', { stream: winstonStream })); // send request logs to winston streamer
 
-const FileStore = sessionFileStore(session);
-const fileStoreOptions: sessionFileStore.Options = {
-  path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
-  // channel session-file-store warnings to winston
-  logFn: (message) => winstonLogger.info(message),
-};
+let sessionStore: session.Store;
+
+// use redis session store if redis is available
+if (EXPRESS_REDIS_URL !== undefined) {
+  const RedisStore = connectRedis(session);
+  const redisClient = createClient({
+    legacyMode: true,
+    url: EXPRESS_REDIS_URL,
+  });
+
+  redisClient.on('connect', () => winstonLogger.info('Redis client connected!'));
+  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
+  redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
+  redisClient.on('end', () => winstonLogger.error('Redis client disconnected'));
+
+  redisClient.connect().catch((err) => winstonLogger.error(err));
+
+  sessionStore = new RedisStore({ client: redisClient });
+}
+// else default to file store
+else {
+  winstonLogger.error('Redis Connection Error: Redis url not defined, using file session store');
+
+  const FileStore = sessionFileStore(session);
+  sessionStore = new FileStore({
+    path: EXPRESS_SESSION_FILESTORE_PATH || './sessions',
+    logFn: (message) => winstonLogger.info(message),
+  });
+}
 
 let nextPath: string | undefined;
 
@@ -97,7 +123,7 @@ const sess = {
   resave: true,
   saveUninitialized: true,
   secret: EXPRESS_SESSION_SECRET || 'hunter2',
-  store: new FileStore(fileStoreOptions),
+  store: sessionStore,
 };
 
 if (app.get('env') === 'production') {
