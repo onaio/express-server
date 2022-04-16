@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 import helmet from 'helmet';
 import fetch from 'node-fetch';
 import morgan from 'morgan';
@@ -86,17 +86,12 @@ let sessionStore: session.Store;
 // use redis session store if redis is available
 if (EXPRESS_REDIS_URL !== undefined) {
   const RedisStore = connectRedis(session);
-  const redisClient = createClient({
-    legacyMode: true,
-    url: EXPRESS_REDIS_URL,
-  });
+  const redisClient = new Redis(EXPRESS_REDIS_URL);
 
   redisClient.on('connect', () => winstonLogger.info('Redis client connected!'));
-  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
   redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
-  redisClient.on('end', () => winstonLogger.error('Redis client disconnected'));
-
-  redisClient.connect().catch((err) => winstonLogger.error(err));
+  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
+  redisClient.on('end', () => winstonLogger.error('Redis error: Redis client disconnected'));
 
   sessionStore = new RedisStore({ client: redisClient });
 }
