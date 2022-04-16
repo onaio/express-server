@@ -86,7 +86,17 @@ let sessionStore: session.Store;
 // use redis session store if redis is available
 if (EXPRESS_REDIS_URL !== undefined) {
   const RedisStore = connectRedis(session);
-  const redisClient = new Redis(EXPRESS_REDIS_URL);
+  const redisClient = new Redis(EXPRESS_REDIS_URL, {
+    retryStrategy(times) {
+      // wait 2 seconds between retries
+      const delay = 2000;
+      // stop retrying to reconnect after 20th attempt
+      if (times >= 20) {
+        return undefined;
+      }
+      return delay;
+    },
+  });
 
   redisClient.on('connect', () => winstonLogger.info('Redis client connected!'));
   redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
