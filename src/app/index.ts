@@ -250,6 +250,8 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
           }
           let apiResponse: Dictionary;
           try {
+            const { state } = req.query;
+            if (state && typeof state === 'string') nextPath = state;
             apiResponse = JSON.parse(body);
             processUserInfo(req, res, user.data, apiResponse);
           } catch (__) {
@@ -288,7 +290,9 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
   }
   const localNextPath = nextPath || '/';
 
-  return req.session.preloadedState ? res.redirect(localNextPath) : res.redirect(EXPRESS_FRONTEND_LOGIN_URL);
+  return req.session.preloadedState
+    ? res.redirect(localNextPath)
+    : res.redirect(`${EXPRESS_FRONTEND_LOGIN_URL}/${localNextPath.replace('/', '')}`);
 };
 
 const logout = async (req: express.Request, res: express.Response) => {
