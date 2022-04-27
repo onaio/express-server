@@ -64,7 +64,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         'script-src': ["'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"],
-        'img-src': ["'self'", 'https://github.com', 'https://*.githubusercontent.com'],
+        'img-src': ["'self'", 'https://github.com', 'https://raw.githubusercontent.com'],
         // allow connection from keycloak and opensrp server
         'connect-src': [
           "'self'",
