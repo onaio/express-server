@@ -65,12 +65,8 @@ app.use(
       directives: {
         'script-src': ["'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"],
         'img-src': ["'self'", 'https://github.com', 'https://raw.githubusercontent.com'],
-        // allow connection from keycloak and opensrp server
-        'connect-src': [
-          "'self'",
-          ...getOriginFromUrl(EXPRESS_OPENSRP_AUTHORIZATION_URL),
-          ...getOriginFromUrl(EXPRESS_OPENSRP_USER_URL),
-        ],
+        // allow connection from keycloak
+        'connect-src': ["'self'", ...getOriginFromUrl(EXPRESS_OPENSRP_AUTHORIZATION_URL)],
       },
     },
   }),
