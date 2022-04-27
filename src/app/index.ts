@@ -61,7 +61,7 @@ app.use(
     // should consider overriding this to allow individual front-ends set Content-Security-Policy on meta tags themselves if list of exceptions grow
     // like so: <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;" >
     directives: {
-      'script-src': ["'self'", 'https://cdnjs.cloudflare.com', "'unsafe-inline'"],
+      'script-src': ["'self'", 'https://cdnjs.cloudflare.com'],
     },
   }),
 );
