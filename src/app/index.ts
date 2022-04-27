@@ -73,7 +73,6 @@ app.use(
         ],
       },
     },
-    crossOriginEmbedderPolicy: false,
   }),
 );
 app.use(morgan('combined', { stream: winstonStream })); // send logs to winston
