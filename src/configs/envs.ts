@@ -99,5 +99,9 @@ export const EXPRESS_COMBINED_LOGS_FILE_PATH =
   process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_PATH;
 
-// see https://github.com/luin/ioredis#connect-to-redis
-export const { EXPRESS_REDIS_URL } = process.env;
+// see https://github.com/luin/ioredis#sentinel
+export const {
+  EXPRESS_REDIS_SENTINEL_CONFIG,
+  EXPRESS_REDIS_DELAY_TIME = '2000',
+  EXPRESS_REDIS_MAX_RETRY_TIMES = '20',
+} = process.env;

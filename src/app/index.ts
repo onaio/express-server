@@ -36,7 +36,9 @@ import {
   EXPRESS_SESSION_NAME,
   EXPRESS_SESSION_PATH,
   EXPRESS_SESSION_SECRET,
-  EXPRESS_REDIS_URL,
+  EXPRESS_REDIS_SENTINEL_CONFIG,
+  EXPRESS_REDIS_DELAY_TIME,
+  EXPRESS_REDIS_MAX_RETRY_TIMES,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 import { getOriginFromUrl } from '../utils';
@@ -84,14 +86,28 @@ app.use(morgan('combined', { stream: winstonStream })); // send request logs to 
 let sessionStore: session.Store;
 
 // use redis session store if redis is available
-if (EXPRESS_REDIS_URL !== undefined) {
+if (EXPRESS_REDIS_SENTINEL_CONFIG !== undefined) {
+  // parse redis sentinel config from string to object
+  const parsedSentinelConfigs = JSON.parse(EXPRESS_REDIS_SENTINEL_CONFIG);
+  // delay time between redis connection retries (in milliseconds)
+  const delay = parseInt(EXPRESS_REDIS_DELAY_TIME, 10);
+  const maxRetries = parseInt(EXPRESS_REDIS_MAX_RETRY_TIMES, 10);
+
   const RedisStore = connectRedis(session);
-  const redisClient = new Redis(EXPRESS_REDIS_URL, {
+
+  const redisClient = new Redis({
+    ...parsedSentinelConfigs,
+    // retry when all sentinel nodes are unreachable during connecting
+    sentinelRetryStrategy(times) {
+      // stop retrying to reconnect after nth attempt
+      if (times >= maxRetries) {
+        return undefined;
+      }
+      return delay;
+    },
+    // retry to reconnect when connection to Redis is lost
     retryStrategy(times) {
-      // wait 2 seconds between retries
-      const delay = 2000;
-      // stop retrying to reconnect after 20th attempt
-      if (times >= 20) {
+      if (times >= maxRetries) {
         return undefined;
       }
       return delay;
