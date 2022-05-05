@@ -4,6 +4,8 @@ import app from '../index';
 
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=openssh';
 
+jest.mock('../../configs/envs');
+
 const panic = (err: Error, done: jest.DoneCallback): void => {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (err) {

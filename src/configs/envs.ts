@@ -98,3 +98,11 @@ export type EXPRESS_LOGS_FILE_PATH = typeof EXPRESS_LOGS_FILE_PATH;
 export const EXPRESS_COMBINED_LOGS_FILE_PATH =
   process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_PATH;
+
+const defaultCsp = JSON.stringify({
+  'default-src': ['none'],
+});
+export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = JSON.parse(
+  process.env.EXPRESS_CONTENT_SECURITY_POLICY_CONFIG || defaultCsp,
+);
+export type EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = typeof EXPRESS_CONTENT_SECURITY_POLICY_CONFIG;
