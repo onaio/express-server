@@ -123,6 +123,10 @@ describe('src/index.ts', () => {
     request(app)
       .get('/')
       .expect(200)
+      .expect((res) => {
+        const csp = res.headers['content-security-policy'];
+        expect(csp).toContain(`default-src 'self';report-uri https://example.com;`);
+      })
       .expect('Do you mind\n')
       .catch((err: Error) => {
         throw err;
