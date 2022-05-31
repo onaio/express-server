@@ -102,6 +102,7 @@ export type EXPRESS_COMBINED_LOGS_FILE_PATH = typeof EXPRESS_COMBINED_LOGS_FILE_
 const defaultCsp = JSON.stringify({
   'default-src': ['none'],
 });
+
 export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = JSON.parse(
   process.env.EXPRESS_CONTENT_SECURITY_POLICY_CONFIG || defaultCsp,
 );
@@ -112,3 +113,6 @@ export const { EXPRESS_REDIS_STAND_ALONE_URL } = process.env;
 
 // see https://github.com/luin/ioredis#sentinel
 export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDIS_SENTINEL_CONFIG || '{}');
+
+export const EXPRESS_REPORT_TO_HEADER = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
+export type EXPRESS_REPORT_TO_HEADER = typeof EXPRESS_REPORT_TO_HEADER;

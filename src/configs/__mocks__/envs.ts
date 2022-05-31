@@ -68,3 +68,8 @@ export const EXPRESS_LOGS_FILE_PATH = './logs/default-error.log';
 
 export const EXPRESS_COMBINED_LOGS_FILE_PATH = './logs/default-error-and-info.log';
 export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = { 'default-src': ["'self'"], reportUri: 'https://example.com' };
+
+export const EXPRESS_REPORT_TO_HEADER = [
+  { group: 'csp-endpoint', max_age: 10886400, endpoints: [{ url: 'https://example.com/csp-reports' }] },
+  { group: 'hpkp-endpoint', max_age: 10886400, endpoints: [{ url: 'https://example.com/hpkp-reports' }] },
+];
