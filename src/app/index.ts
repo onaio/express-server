@@ -92,9 +92,9 @@ if (EXPRESS_REDIS_URL !== undefined) {
   });
 
   redisClient.on('connect', () => winstonLogger.info('Redis single node client connected!'));
-  redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
-  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
-  redisClient.on('end', () => winstonLogger.error('Redis error: Redis client disconnected'));
+  redisClient.on('reconnecting', () => winstonLogger.info('Redis single node client trying to reconnect'));
+  redisClient.on('error', (err) => winstonLogger.error('Redis single node client error:', err));
+  redisClient.on('end', () => winstonLogger.error('Redis single node client error: Redis client disconnected'));
 
   sessionStore = new RedisStore({ client: redisClient });
 }
@@ -122,9 +122,9 @@ else if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
   });
 
   redisClient.on('connect', () => winstonLogger.info('Redis sentinel client connected!'));
-  redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
-  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
-  redisClient.on('end', () => winstonLogger.error('Redis error: Redis client disconnected'));
+  redisClient.on('reconnecting', () => winstonLogger.info('Redis sentinel client trying to reconnect'));
+  redisClient.on('error', (err) => winstonLogger.error('Redis sentinel client error:', err));
+  redisClient.on('end', () => winstonLogger.error('Redis sentinel client error: Redis client disconnected'));
 
   sessionStore = new RedisStore({ client: redisClient });
 } else {
