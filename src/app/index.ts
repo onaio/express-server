@@ -79,17 +79,7 @@ let sessionStore: session.Store;
 // check for and use a single redis node
 if (EXPRESS_REDIS_URL !== undefined) {
   const RedisStore = connectRedis(session);
-  const redisClient = new Redis(EXPRESS_REDIS_URL, {
-    retryStrategy(times) {
-      // wait 2 seconds between retries
-      const delay = 2000;
-      // stop retrying to reconnect after 20th attempt
-      if (times >= 20) {
-        return undefined;
-      }
-      return delay;
-    },
-  });
+  const redisClient = new Redis(EXPRESS_REDIS_URL);
 
   redisClient.on('connect', () => winstonLogger.info('Redis single node client connected!'));
   redisClient.on('reconnecting', () => winstonLogger.info('Redis single node client trying to reconnect'));
@@ -104,21 +94,6 @@ else if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
 
   const redisClient = new Redis({
     ...EXPRESS_REDIS_SENTINEL_CONFIG,
-    // retry when all sentinel nodes are unreachable during connecting
-    sentinelRetryStrategy(times) {
-      // stop retrying to reconnect after 20th attempt
-      if (times >= 20) {
-        return undefined;
-      }
-      return 2000;
-    },
-    // retry to reconnect when connection to Redis is lost
-    retryStrategy(times) {
-      if (times >= 20) {
-        return undefined;
-      }
-      return 2000;
-    },
   });
 
   redisClient.on('connect', () => winstonLogger.info('Redis sentinel client connected!'));
