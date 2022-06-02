@@ -102,7 +102,9 @@ else if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
   redisClient.on('end', () => winstonLogger.error('Redis sentinel client error: Redis client disconnected'));
 
   sessionStore = new RedisStore({ client: redisClient });
-} else {
+}
+// else default to file store
+else {
   winstonLogger.error('Redis Connection Error: Redis configs not provided using file session store');
 
   const FileStore = sessionFileStore(session);
