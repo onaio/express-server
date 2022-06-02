@@ -36,6 +36,7 @@ import {
   EXPRESS_SESSION_NAME,
   EXPRESS_SESSION_PATH,
   EXPRESS_SESSION_SECRET,
+  EXPRESS_REDIS_URL,
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
 } from '../configs/envs';
@@ -74,8 +75,31 @@ app.use(morgan('combined', { stream: winstonStream })); // send request logs to 
 
 let sessionStore: session.Store;
 
-// use redis session store if redis config is available
-if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
+// use redis session store if redis is available else default to file store
+// check for and use a single redis node
+if (EXPRESS_REDIS_URL !== undefined) {
+  const RedisStore = connectRedis(session);
+  const redisClient = new Redis(EXPRESS_REDIS_URL, {
+    retryStrategy(times) {
+      // wait 2 seconds between retries
+      const delay = 2000;
+      // stop retrying to reconnect after 20th attempt
+      if (times >= 20) {
+        return undefined;
+      }
+      return delay;
+    },
+  });
+
+  redisClient.on('connect', () => winstonLogger.info('Redis single node client connected!'));
+  redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
+  redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
+  redisClient.on('end', () => winstonLogger.error('Redis error: Redis client disconnected'));
+
+  sessionStore = new RedisStore({ client: redisClient });
+}
+// check for and use redis sentinel if available
+else if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
   const RedisStore = connectRedis(session);
 
   const redisClient = new Redis({
@@ -97,16 +121,14 @@ if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
     },
   });
 
-  redisClient.on('connect', () => winstonLogger.info('Redis client connected!'));
+  redisClient.on('connect', () => winstonLogger.info('Redis sentinel client connected!'));
   redisClient.on('reconnecting', () => winstonLogger.info('Redis trying to reconnect'));
   redisClient.on('error', (err) => winstonLogger.error('Redis error:', err));
   redisClient.on('end', () => winstonLogger.error('Redis error: Redis client disconnected'));
 
   sessionStore = new RedisStore({ client: redisClient });
-}
-// else default to file store
-else {
-  winstonLogger.error('Redis Connection Error: Redis url not defined, using file session store');
+} else {
+  winstonLogger.error('Redis Connection Error: Redis configs not provided using file session store');
 
   const FileStore = sessionFileStore(session);
   sessionStore = new FileStore({
