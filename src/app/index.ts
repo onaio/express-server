@@ -89,7 +89,7 @@ if (EXPRESS_REDIS_URL !== undefined) {
   sessionStore = new RedisStore({ client: redisClient });
 }
 // check for and use redis sentinel if available
-else if (Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
+else if (EXPRESS_REDIS_SENTINEL_CONFIG !== undefined && Object.keys(EXPRESS_REDIS_SENTINEL_CONFIG).length > 0) {
   const RedisStore = connectRedis(session);
 
   const redisClient = new Redis({
