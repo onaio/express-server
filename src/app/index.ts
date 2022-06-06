@@ -39,7 +39,7 @@ import {
   EXPRESS_REDIS_STAND_ALONE_URL,
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
-  EXPRESS_REPORT_TO_HEADER,
+  EXPRESS_RESPONSE_HEADERS,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
@@ -142,9 +142,13 @@ app.use(cookieParser());
 app.use(session(sess));
 // apply other headers to reponse
 app.use((_, res, next) => {
-  if (EXPRESS_REPORT_TO_HEADER.length > 0) {
-    const reportToHeaderValue = EXPRESS_REPORT_TO_HEADER.map(JSON.stringify).join(', ');
-    res.header('Report-To', reportToHeaderValue);
+  const customHeaders = Object.entries(EXPRESS_RESPONSE_HEADERS);
+  if (customHeaders.length > 0) {
+    customHeaders.forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        res.header(key, value);
+      }
+    });
   }
   next();
 });

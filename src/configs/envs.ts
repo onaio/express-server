@@ -114,5 +114,5 @@ export const { EXPRESS_REDIS_STAND_ALONE_URL } = process.env;
 // see https://github.com/luin/ioredis#sentinel
 export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDIS_SENTINEL_CONFIG || '{}');
 
-export const EXPRESS_REPORT_TO_HEADER = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
-export type EXPRESS_REPORT_TO_HEADER = typeof EXPRESS_REPORT_TO_HEADER;
+export const EXPRESS_RESPONSE_HEADERS = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
+export type EXPRESS_RESPONSE_HEADERS = typeof EXPRESS_RESPONSE_HEADERS;

@@ -123,7 +123,7 @@ describe('src/index.ts', () => {
         const reportTo = res.headers['report-to'];
         expect(csp).toContain(`default-src 'self';report-uri https://example.com;`);
         expect(reportTo).toEqual(
-          '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}]}, {"group":"hpkp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/hpkp-reports"}]}',
+          '{ "group": "csp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/csp-reports" }] }, { "group": "hpkp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/hpkp-reports" }] }',
         );
       })
       .expect('Do you mind\n')
