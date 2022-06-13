@@ -4,6 +4,8 @@ import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
 import request from 'supertest';
 import express from 'express';
+import RedisMock from 'ioredis-mock';
+import Redis from 'ioredis';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
@@ -29,6 +31,7 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
   }
 };
 
+jest.mock('ioredis', () => RedisMock);
 jest.mock('../../configs/envs');
 // mock out winston logger and stream methods - reduce log noise in test output
 jest.mock('../../configs/winston', () => ({
@@ -113,10 +116,14 @@ describe('src/index.ts', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let cookie: { [key: string]: any };
 
-  afterEach(() => {
+  afterEach((done) => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
     jest.clearAllMocks();
+    new Redis()
+      .flushall()
+      .then(() => done())
+      .catch((err) => panic(err, done));
   });
 
   it('serves the build.index.html file', (done) => {
@@ -433,4 +440,60 @@ describe('src/index.ts', () => {
 
     done();
   });
+  // it('uses single redis node as session storage', (done) => {
+  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
+
+  //   request(app)
+  //     .get('/test/endpoint')
+  //     .then(() => {
+  //       expect(logsSpy).toHaveBeenCalledWith('Redis single node client connected!');
+  //       done();
+  //     })
+  //     .catch((err: Error) => {
+  //       panic(err, done);
+  //     });
+  // });
+  // it('uses redis sentinel as session storage', (done) => {
+  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
+
+  //   request(app)
+  //     .get('/test/endpoint')
+  //     .then(() => {
+  //       expect(logsSpy).toHaveBeenCalledWith('Redis sentinel client connected!');
+  //       done();
+  //     })
+  //     .catch((err: Error) => {
+  //       panic(err, done);
+  //     });
+  // });
+  // it('shows no redis configs', (done) => {
+  //   const logsSpy = jest.spyOn(winstonLogger, 'error');
+
+  //   request(app)
+  //     .get('/test/endpoint')
+  //     .then(() => {
+  //       expect(logsSpy).toHaveBeenCalledWith(
+  //         'Redis Connection Error: Redis configs not provided using file session store',
+  //       );
+  //       done();
+  //     })
+  //     .catch((err: Error) => {
+  //       panic(err, done);
+  //     });
+  // });
+  // it('shows errors when single redis node disconnects', (done) => {
+  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
+
+  //   request(app)
+  //     .get('/test/endpoint')
+  //     .then(() => {
+  //       new Redis().quit().catch((err) => panic(err, done));
+
+  //       expect(logsSpy).toHaveBeenCalledWith('Redis single node client error: Redis client disconnected');
+  //       done();
+  //     })
+  //     .catch((err: Error) => {
+  //       panic(err, done);
+  //     });
+  // });
 });

@@ -68,3 +68,7 @@ export const EXPRESS_LOGS_FILE_PATH = './logs/default-error.log';
 
 export const EXPRESS_COMBINED_LOGS_FILE_PATH = './logs/default-error-and-info.log';
 export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = { 'default-src': ["'self'"], reportUri: 'https://example.com' };
+
+// export const EXPRESS_REDIS_URL = 'redis://:@127.0.0.1:6379';
+// export const EXPRESS_REDIS_SENTINEL_CONFIG =
+//   '{"name":"mymaster","sentinels":[{"host":"127.0.0.1","port":26379},{"host":"127.0.0.1","port":6380},{"host":"127.0.0.1","port":6379}]}';
