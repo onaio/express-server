@@ -42,6 +42,20 @@ import {
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
+/** as long tests are in the same file, only one env value will be registered, there is no other way to provide diff env values
+ * - create factory function maybe that takes in env configuration and returns an instance.
+ * - or create several test files that create their own imports.
+ * 
+ * - I gues jest gives us a release clutch by jest.resetModules, and then we can
+ *  jest.mock('../../configs/envs', () => {
+      return {
+        EXPRESS_REDIS_URL: 'redis://:@127.0.0.1:6381'
+      }
+    });
+ */
+
+console.log('=============>', EXPRESS_REDIS_URL);
+
 type Dictionary = { [key: string]: unknown };
 
 const opensrpAuth = new ClientOAuth2({
