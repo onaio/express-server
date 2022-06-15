@@ -62,7 +62,12 @@ const app = express();
 app.use(compression()); // Compress all routes
 // helps mitigate cross-site scripting attacks and other known vulnerabilities
 const reportOnly =
-  EXPRESS_CONTENT_SECURITY_POLICY_CONFIG['report-only'] || EXPRESS_CONTENT_SECURITY_POLICY_CONFIG.reportOnly || false;
+  EXPRESS_CONTENT_SECURITY_POLICY_CONFIG['report-only'] || EXPRESS_CONTENT_SECURITY_POLICY_CONFIG.reportOnly;
+if (reportOnly !== undefined) {
+  delete EXPRESS_CONTENT_SECURITY_POLICY_CONFIG['report-only'];
+  delete EXPRESS_CONTENT_SECURITY_POLICY_CONFIG.reportOnly;
+}
+
 app.use(
   helmet({
     // override default contentSecurityPolicy directive like script-src to include cloudflare cdn and github static content
