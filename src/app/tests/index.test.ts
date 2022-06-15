@@ -4,7 +4,6 @@ import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
 import request from 'supertest';
 import express from 'express';
-import RedisMock from 'ioredis-mock';
 import Redis from 'ioredis';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
@@ -31,7 +30,7 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
   }
 };
 
-jest.mock('ioredis', () => RedisMock);
+jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 jest.mock('../../configs/envs');
 // mock out winston logger and stream methods - reduce log noise in test output
 jest.mock('../../configs/winston', () => ({
