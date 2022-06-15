@@ -11,7 +11,8 @@
     "paths": {
       "*": ["node_modules/*"]
     },
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "typeRoots": [
