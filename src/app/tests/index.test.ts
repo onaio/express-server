@@ -33,17 +33,16 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 jest.mock('../../configs/envs');
 // mock out winston logger and stream methods - reduce log noise in test output
-jest.mock('../../configs/winston', () => ({
-  winstonLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-  winstonStream: {
-    write: jest.fn(),
-  },
-}));
+// jest.mock('../../configs/winston', () => ({
+//   winstonLogger: {
+//     info: jest.fn(),
+//     error: jest.fn(),
+//   },
+//   winstonStream: {
+//     write: jest.fn(),
+//   },
+// }));
 jest.mock('node-fetch');
-
 jest.mock('client-oauth2', () => {
   class CodeFlow {
     private client: ClientOauth2;
@@ -436,63 +435,49 @@ describe('src/index.ts', () => {
     );
 
     expect(winston).toHaveBeenCalledTimes(2);
-
     done();
   });
-  // it('uses single redis node as session storage', (done) => {
-  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
 
-  //   request(app)
-  //     .get('/test/endpoint')
-  //     .then(() => {
-  //       expect(logsSpy).toHaveBeenCalledWith('Redis single node client connected!');
-  //       done();
-  //     })
-  //     .catch((err: Error) => {
-  //       panic(err, done);
-  //     });
-  // });
-  // it('uses redis sentinel as session storage', (done) => {
-  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
+  it('uses single redis node as session storage', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_REDIS_URL: 'redis://:@127.0.0.1:1234',
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    const { winstonLogger: winstonLogger2 } = jest.requireActual('../../configs/winston');
+    const logsSpy = jest.spyOn(winstonLogger2, 'info');
 
-  //   request(app)
-  //     .get('/test/endpoint')
-  //     .then(() => {
-  //       expect(logsSpy).toHaveBeenCalledWith('Redis sentinel client connected!');
-  //       done();
-  //     })
-  //     .catch((err: Error) => {
-  //       panic(err, done);
-  //     });
-  // });
-  // it('shows no redis configs', (done) => {
-  //   const logsSpy = jest.spyOn(winstonLogger, 'error');
+    request(app2)
+      .get('/test/endpoint')
+      .then(() => {
+        expect(logsSpy).toHaveBeenCalledWith('Redis single node client connected!');
+        done();
+      })
+      .catch((err) => {
+        panic(err, done);
+      });
+  });
 
-  //   request(app)
-  //     .get('/test/endpoint')
-  //     .then(() => {
-  //       expect(logsSpy).toHaveBeenCalledWith(
-  //         'Redis Connection Error: Redis configs not provided using file session store',
-  //       );
-  //       done();
-  //     })
-  //     .catch((err: Error) => {
-  //       panic(err, done);
-  //     });
-  // });
-  // it('shows errors when single redis node disconnects', (done) => {
-  //   const logsSpy = jest.spyOn(winstonLogger, 'info');
+  it('uses redis sentinel as session storage', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_REDIS_SENTINEL_CONFIG:
+        '{"name":"mymaster","sentinels":[{"host":"127.0.0.1","port":26379},{"host":"127.0.0.1","port":6380},{"host":"127.0.0.1","port":6379}]}',
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    const { winstonLogger: winstonLogger2 } = jest.requireActual('../../configs/winston');
+    const logsSpy = jest.spyOn(winstonLogger2, 'info');
 
-  //   request(app)
-  //     .get('/test/endpoint')
-  //     .then(() => {
-  //       new Redis().quit().catch((err) => panic(err, done));
-
-  //       expect(logsSpy).toHaveBeenCalledWith('Redis single node client error: Redis client disconnected');
-  //       done();
-  //     })
-  //     .catch((err: Error) => {
-  //       panic(err, done);
-  //     });
-  // });
+    request(app2)
+      .get('/test/endpoint')
+      .then(() => {
+        expect(logsSpy).toHaveBeenCalledWith('Redis sentinel client connected!');
+        done();
+      })
+      .catch((err) => {
+        panic(err, done);
+      });
+  });
 });
