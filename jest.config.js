@@ -9,4 +9,5 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/tests/', '!src/index.ts'],
   coverageReporters: ['lcov', 'html'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };

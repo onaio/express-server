@@ -32,16 +32,6 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 jest.mock('../../configs/envs');
-// mock out winston logger and stream methods - reduce log noise in test output
-// jest.mock('../../configs/winston', () => ({
-//   winstonLogger: {
-//     info: jest.fn(),
-//     error: jest.fn(),
-//   },
-//   winstonStream: {
-//     write: jest.fn(),
-//   },
-// }));
 jest.mock('node-fetch');
 jest.mock('client-oauth2', () => {
   class CodeFlow {
