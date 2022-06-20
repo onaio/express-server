@@ -75,8 +75,5 @@ export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = {
 
 export const EXPRESS_RESPONSE_HEADERS = {
   'Report-To':
-    // eslint-disable-next-line no-multi-str
-    '\
-    { "group": "csp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/csp-reports" }] }, { "group": "hpkp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/hpkp-reports" }] }\
-  ',
+    '{ "group": "csp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/csp-reports" }] }, { "group": "hpkp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/hpkp-reports" }] }',
 };
