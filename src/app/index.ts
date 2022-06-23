@@ -36,7 +36,7 @@ import {
   EXPRESS_SESSION_NAME,
   EXPRESS_SESSION_PATH,
   EXPRESS_SESSION_SECRET,
-  EXPRESS_REDIS_URL,
+  EXPRESS_REDIS_STAND_ALONE_URL,
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
 } from '../configs/envs';
@@ -77,9 +77,9 @@ let sessionStore: session.Store;
 
 // use redis session store if redis is available else default to file store
 // check for and use a single redis node
-if (EXPRESS_REDIS_URL !== undefined) {
+if (EXPRESS_REDIS_STAND_ALONE_URL !== undefined) {
   const RedisStore = connectRedis(session);
-  const redisClient = new Redis(EXPRESS_REDIS_URL);
+  const redisClient = new Redis(EXPRESS_REDIS_STAND_ALONE_URL);
 
   redisClient.on('connect', () => winstonLogger.info('Redis single node client connected!'));
   redisClient.on('reconnecting', () => winstonLogger.info('Redis single node client trying to reconnect'));

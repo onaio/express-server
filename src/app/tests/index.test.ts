@@ -432,7 +432,7 @@ describe('src/index.ts', () => {
     jest.resetModules();
     jest.mock('../../configs/envs', () => ({
       ...jest.requireActual('../../configs/envs'),
-      EXPRESS_REDIS_URL: 'redis://:@127.0.0.1:1234',
+      EXPRESS_REDIS_STAND_ALONE_URL: 'redis://:@127.0.0.1:1234',
     }));
     const { default: app2 } = jest.requireActual('../index');
     const { winstonLogger: winstonLogger2 } = jest.requireActual('../../configs/winston');

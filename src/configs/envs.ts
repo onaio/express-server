@@ -108,7 +108,7 @@ export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = JSON.parse(
 export type EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = typeof EXPRESS_CONTENT_SECURITY_POLICY_CONFIG;
 
 // see https://github.com/luin/ioredis#connect-to-redis
-export const { EXPRESS_REDIS_URL } = process.env;
+export const { EXPRESS_REDIS_STAND_ALONE_URL } = process.env;
 
 // see https://github.com/luin/ioredis#sentinel
 export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDIS_SENTINEL_CONFIG || '{}');
