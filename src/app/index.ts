@@ -14,6 +14,7 @@ import querystring from 'querystring';
 import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
+import { SessionState } from '@onaio/session-reducer';
 import { winstonLogger, winstonStream } from '../configs/winston';
 import {
   EXPRESS_ALLOW_TOKEN_RENEWAL,
@@ -51,7 +52,7 @@ const opensrpAuth = new ClientOAuth2({
   clientId: EXPRESS_OPENSRP_CLIENT_ID,
   clientSecret: EXPRESS_OPENSRP_CLIENT_SECRET,
   redirectUri: EXPRESS_OPENSRP_CALLBACK_URL,
-  scopes: ['read', 'write'],
+  scopes: ['openid'],
   state: EXPRESS_OPENSRP_OAUTH_STATE,
 });
 const loginURL = EXPRESS_SESSION_LOGIN_URL;
@@ -194,18 +195,24 @@ const processUserInfo = (
   req: express.Request,
   res: express.Response,
   authDetails: Dictionary,
-  userDetails?: Dictionary,
+  processedUserDetails?: SessionState,
   isRefresh?: boolean,
 ) => {
   // get user details from session. will be needed when refreshing token
-  const userInfo = userDetails ?? req.session.preloadedState?.session?.extraData ?? {};
+  let userInfo = processedUserDetails ?? req.session.preloadedState?.session?.extraData ?? {};
   const date = new Date(Date.now());
   const sessionExpiryTime = req.session.preloadedState?.session_expires_at;
   const sessionExpiresAt = isRefresh
     ? sessionExpiryTime
     : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
-  userInfo.oAuth2Data = authDetails;
-  const sessionState = getOpenSRPUserInfo(userInfo);
+  userInfo = {
+    ...userInfo,
+    extraData: {
+      ...userInfo.extraData,
+      oAuth2Data: authDetails,
+    },
+  };
+  const sessionState = userInfo;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (sessionState) {
     const gatekeeperState = {
@@ -294,7 +301,8 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
           let apiResponse: Dictionary;
           try {
             apiResponse = JSON.parse(body);
-            processUserInfo(req, res, user.data, apiResponse);
+            const opensrpUserInfo = getOpenSRPUserInfo(apiResponse);
+            processUserInfo(req, res, user.data, opensrpUserInfo);
           } catch (__) {
             res.redirect('/logout?serverLogout=true');
           }
@@ -337,6 +345,7 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
 const logout = async (req: express.Request, res: express.Response) => {
   if (req.query.serverLogout) {
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+    const idTokenHint = req.session.preloadedState?.session?.extraData?.oAuth2Data?.id_token;
     const payload = {
       headers: {
         accept: 'application/json',
@@ -345,10 +354,18 @@ const logout = async (req: express.Request, res: express.Response) => {
       },
       method: 'GET',
     };
-    if (accessToken) {
+    if (accessToken && EXPRESS_OPENSRP_LOGOUT_URL) {
       await fetch(EXPRESS_OPENSRP_LOGOUT_URL, payload);
     }
-    const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`;
+    let logoutParams = {};
+    if (idTokenHint) {
+      logoutParams = {
+        post_logout_redirect_url: EXPRESS_SERVER_LOGOUT_URL,
+        id_token_hint: idTokenHint,
+      };
+    }
+    const searchQuery = new URLSearchParams(logoutParams).toString();
+    const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?${searchQuery}`;
     res.redirect(keycloakLogoutFullPath);
   } else {
     req.session.destroy(() => undefined);

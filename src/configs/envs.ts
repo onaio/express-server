@@ -57,8 +57,7 @@ export const EXPRESS_MAXIMUM_SESSION_LIFE_TIME = Number(process.env.EXPRESS_MAXI
 
 export const EXPRESS_SERVER_LOGOUT_URL = process.env.EXPRESS_SERVER_LOGOUT_URL || 'http://localhost:3000/logout';
 
-export const EXPRESS_OPENSRP_LOGOUT_URL =
-  process.env.EXPRESS_OPENSRP_LOGOUT_URL || 'https://opensrp-stage.smartregister.org/opensrp/logout.do';
+export const { EXPRESS_OPENSRP_LOGOUT_URL } = process.env;
 
 export const EXPRESS_KEYCLOAK_LOGOUT_URL =
   process.env.EXPRESS_KEYCLOAK_LOGOUT_URL ||

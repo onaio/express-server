@@ -9,12 +9,11 @@ import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
   EXPRESS_KEYCLOAK_LOGOUT_URL,
-  EXPRESS_SERVER_LOGOUT_URL,
   EXPRESS_OPENSRP_LOGOUT_URL,
   EXPRESS_FRONTEND_LOGIN_URL,
 } from '../../configs/envs';
 import app, { errorHandler } from '../index';
-import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
+import { oauthState, parsedApiResponse, refreshOauthState2, unauthorized } from './fixtures';
 import { winstonLogger } from '../../configs/winston';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -207,7 +206,7 @@ describe('src/index.ts', () => {
       });
   });
 
-  it('/refresh/token works correctly', (done) => {
+  it('/refresh/token works ok', (done) => {
     MockDate.set('1/1/2020');
     // when no session is found
     request(app)
@@ -226,7 +225,7 @@ describe('src/index.ts', () => {
       .get('/refresh/token')
       .set('cookie', sessionString)
       .then((res: request.Response) => {
-        expect(res.body).toEqual(oauthState);
+        expect(res.body).toEqual(refreshOauthState2);
         done();
       })
       .catch((err: Error) => {
@@ -304,7 +303,7 @@ describe('src/index.ts', () => {
       .get('/logout?serverLogout=true')
       .set('Cookie', sessionString)
       .then((res: request.Response) => {
-        expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`);
+        expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?`);
         expect(res.redirect).toBeTruthy();
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(EXPRESS_OPENSRP_LOGOUT_URL, {
