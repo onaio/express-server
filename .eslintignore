@@ -3,3 +3,4 @@ dist
 coverage
 .eslintrc.js
 jest.config.js
+jest.setup.js

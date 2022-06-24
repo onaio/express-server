@@ -13,16 +13,6 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
   }
 };
 
-// mock out winston logger and stream methods - reduce log noise in test output
-jest.mock('../../configs/winston', () => ({
-  winstonLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-  winstonStream: {
-    write: jest.fn(),
-  },
-}));
 jest.mock('client-oauth2', () => {
   class CodeFlow {
     private client: ClientOauth2;

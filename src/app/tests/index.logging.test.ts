@@ -17,16 +17,6 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('../../configs/envs');
-// mock out winston logger and stream methods - reduce log noise in test output
-jest.mock('../../configs/winston', () => ({
-  winstonLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-  winstonStream: {
-    write: jest.fn(),
-  },
-}));
 
 const errorText = 'Token not found';
 
@@ -116,7 +106,7 @@ describe('src/index.ts', () => {
       .get('/oauth/state')
       .then((res) => {
         // one by winston, other by morgan
-        expect(logsSpy).toHaveBeenCalledTimes(1);
+        expect(logsSpy).toHaveBeenCalledTimes(2);
         expect(logsSpy).toHaveBeenCalledWith('Not authorized');
         expect(res.status).toBe(200);
         expect(res.text).toMatch('Not authorized');

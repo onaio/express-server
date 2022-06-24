@@ -4,6 +4,7 @@ import ClientOauth2 from 'client-oauth2';
 import nock from 'nock';
 import request from 'supertest';
 import express from 'express';
+import Redis from 'ioredis';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
@@ -29,19 +30,9 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
   }
 };
 
+jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 jest.mock('../../configs/envs');
-// mock out winston logger and stream methods - reduce log noise in test output
-jest.mock('../../configs/winston', () => ({
-  winstonLogger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-  winstonStream: {
-    write: jest.fn(),
-  },
-}));
 jest.mock('node-fetch');
-
 jest.mock('client-oauth2', () => {
   class CodeFlow {
     private client: ClientOauth2;
@@ -113,10 +104,14 @@ describe('src/index.ts', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let cookie: { [key: string]: any };
 
-  afterEach(() => {
+  afterEach((done) => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
     jest.clearAllMocks();
+    new Redis()
+      .flushall()
+      .then(() => done())
+      .catch((err) => panic(err, done));
   });
 
   it('serves the build.index.html file', (done) => {
@@ -430,7 +425,49 @@ describe('src/index.ts', () => {
     );
 
     expect(winston).toHaveBeenCalledTimes(2);
-
     done();
+  });
+
+  it('uses single redis node as session storage', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_REDIS_STAND_ALONE_URL: 'redis://:@127.0.0.1:1234',
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    const { winstonLogger: winstonLogger2 } = jest.requireActual('../../configs/winston');
+    const logsSpy = jest.spyOn(winstonLogger2, 'info');
+
+    request(app2)
+      .get('/test/endpoint')
+      .then(() => {
+        expect(logsSpy).toHaveBeenCalledWith('Redis single node client connected!');
+        done();
+      })
+      .catch((err) => {
+        panic(err, done);
+      });
+  });
+
+  it('uses redis sentinel as session storage', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_REDIS_SENTINEL_CONFIG:
+        '{"name":"mymaster","sentinels":[{"host":"127.0.0.1","port":26379},{"host":"127.0.0.1","port":6380},{"host":"127.0.0.1","port":6379}]}',
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    const { winstonLogger: winstonLogger2 } = jest.requireActual('../../configs/winston');
+    const logsSpy = jest.spyOn(winstonLogger2, 'info');
+
+    request(app2)
+      .get('/test/endpoint')
+      .then(() => {
+        expect(logsSpy).toHaveBeenCalledWith('Redis sentinel client connected!');
+        done();
+      })
+      .catch((err) => {
+        panic(err, done);
+      });
   });
 });
