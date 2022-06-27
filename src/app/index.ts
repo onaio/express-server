@@ -61,12 +61,6 @@ const app = express();
 
 app.use(compression()); // Compress all routes
 // helps mitigate cross-site scripting attacks and other known vulnerabilities
-const reportOnly =
-  EXPRESS_CONTENT_SECURITY_POLICY_CONFIG['report-only'] || EXPRESS_CONTENT_SECURITY_POLICY_CONFIG.reportOnly;
-if (reportOnly !== undefined) {
-  delete EXPRESS_CONTENT_SECURITY_POLICY_CONFIG['report-only'];
-  delete EXPRESS_CONTENT_SECURITY_POLICY_CONFIG.reportOnly;
-}
 
 app.use(
   helmet({
@@ -75,7 +69,6 @@ app.use(
     // <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'  https://cdnjs.cloudflare.com;" >
     contentSecurityPolicy: {
       directives: EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
-      reportOnly: !!reportOnly,
     },
     crossOriginEmbedderPolicy: false,
   }),
@@ -150,7 +143,7 @@ app.use((_, res, next) => {
   const customHeaders = Object.entries(EXPRESS_RESPONSE_HEADERS);
   if (customHeaders.length > 0) {
     customHeaders.forEach(([key, value]) => {
-      if (typeof value === 'string') {
+      if (typeof value === 'string' && value !== '') {
         res.header(key, value);
       }
     });

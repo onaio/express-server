@@ -70,7 +70,6 @@ export const EXPRESS_COMBINED_LOGS_FILE_PATH = './logs/default-error-and-info.lo
 export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = {
   'default-src': ["'self'"],
   reportUri: 'https://example.com',
-  reportOnly: false,
 };
 
 export const EXPRESS_RESPONSE_HEADERS = {
