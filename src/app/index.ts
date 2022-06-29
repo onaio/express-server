@@ -39,6 +39,7 @@ import {
   EXPRESS_REDIS_STAND_ALONE_URL,
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
+  EXPRESS_RESPONSE_HEADERS,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 
@@ -60,6 +61,7 @@ const app = express();
 
 app.use(compression()); // Compress all routes
 // helps mitigate cross-site scripting attacks and other known vulnerabilities
+
 app.use(
   helmet({
     // override default contentSecurityPolicy directive like script-src to include cloudflare cdn and github static content
@@ -136,6 +138,18 @@ if (app.get('env') === 'production') {
 
 app.use(cookieParser());
 app.use(session(sess));
+// apply other headers to reponse
+app.use((_, res, next) => {
+  const customHeaders = Object.entries(EXPRESS_RESPONSE_HEADERS);
+  if (customHeaders.length > 0) {
+    customHeaders.forEach(([key, value]) => {
+      if (typeof value === 'string' && value !== '') {
+        res.header(key, value);
+      }
+    });
+  }
+  next();
+});
 
 class HttpException extends Error {
   public statusCode: number;
