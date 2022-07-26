@@ -20,9 +20,6 @@ export const EXPRESS_OPENSRP_AUTHORIZATION_URL =
 export const EXPRESS_OPENSRP_CALLBACK_URL =
   process.env.EXPRESS_OPENSRP_CALLBACK_URL || 'http://localhost:3000/oauth/callback/OpenSRP/';
 
-export const EXPRESS_OPENSRP_USER_URL =
-  process.env.EXPRESS_OPENSRP_USER_URL || 'https://opensrp-stage.smartregister.org/opensrp/user-details';
-
 export const EXPRESS_SESSION_FILESTORE_PATH = process.env.EXPRESS_SESSION_FILESTORE_PATH || '/tmp/express-sessions';
 
 export const EXPRESS_PRELOADED_STATE_FILE = process.env.EXPRESS_PRELOADED_STATE_FILE || '/tmp/expressState.json';
