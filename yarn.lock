@@ -263,9 +263,9 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.2.0":
-  version "7.18.3"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.3.tgz#c7b654b57f6f63cf7f8b418ac9ca04408c4579f4"
-  integrity sha512-38Y8f7YUhce/K7RMwTp7m0uCumpv9hZkitCbBClqQIow1qSbCvGkcegKOXpEWCQLfWmevgRiWokZ1GkpfhbZug==
+  version "7.18.9"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.9.tgz#b4fcfce55db3d2e5e080d2490f608a3b9f407f4a"
+  integrity sha512-lkqXDcvlFT5rvEjiu6+QYO+1GXrEHRo2LOtS7E4GtX5ESIZOgepqsZBVIj6Pv+a6zqsya9VCgiK1KAK4BvJDAw==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -584,13 +584,14 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@onaio/gatekeeper@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@onaio/gatekeeper/-/gatekeeper-0.2.0.tgz#4c973e0a8a7eba5aabff12e2240cda83cc76400e"
-  integrity sha512-xbuVe3Sy9rQghMer8yM1JTQAPUc5BHFkyjHKvqW/Pr32d5FI9aG4SvQ3kh+d0Jm/KPMF//RVkuKgPNanOiY0zQ==
+"@onaio/gatekeeper@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@onaio/gatekeeper/-/gatekeeper-0.3.0.tgz#68b802968b465053f18d18f010229485020d0120"
+  integrity sha512-ehhNvBiZdGSDH3nrlqy2lguXN3ipWsYf4xKF/rq8W0thFPScpks7E+SwIWcROkIzMBpLJlUbhU0pYSJeS8Fctw==
   dependencies:
     "@onaio/session-reducer" "^0.0.13"
     client-oauth2 "^4.3.3"
+    jsonwebtoken "^8.5.1"
     query-string "^6.4.2"
     reactstrap "^7.1.0"
 
@@ -854,13 +855,6 @@
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
-
-"@types/jsonwebtoken@^8.5.8":
-  version "8.5.8"
-  resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-8.5.8.tgz#01b39711eb844777b7af1d1f2b4cf22fda1c0c44"
-  integrity sha512-zm6xBQpFDIDM6o9r6HSgDeIcLy82TKWctCXEPbJJcXb5AKmi5BNNdLXneixK4lplX3PqIVcwLBCGE/kAGnlD4A==
-  dependencies:
-    "@types/node" "*"
 
 "@types/mime@^1":
   version "1.3.2"
