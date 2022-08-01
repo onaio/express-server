@@ -148,7 +148,7 @@ app.use((_, res, next) => {
   next();
 });
 
-class HttpException extends Error {
+export class HttpException extends Error {
   public statusCode: number;
 
   public message: string;
