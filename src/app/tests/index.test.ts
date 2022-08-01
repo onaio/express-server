@@ -16,6 +16,7 @@ import {
 import app, { errorHandler } from '../index';
 import { oauthState, parsedApiResponse, unauthorized } from './fixtures';
 import { winstonLogger } from '../../configs/winston';
+import { METHOD_NOT_ALLOWED } from '../../constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { extractCookies } = require('./utils');
@@ -281,6 +282,7 @@ describe('src/index.ts', () => {
         panic(err, done);
       });
   });
+
   it('Accessing login url when next Path is defined and logged in', (done) => {
     // when logged in and nextPath is not provided, redirect to home
     request(app)
@@ -471,6 +473,28 @@ describe('src/index.ts', () => {
         done();
       })
       .catch((err) => {
+        panic(err, done);
+      });
+  });
+
+  it('/oauth/state is not accessed in prod envs', (done) => {
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      NODE_ENV: 'production',
+    }));
+    // call refresh token
+    request(app)
+      .get('/oauth/token')
+      .then((res: request.Response) => {
+        expect(res.status).toEqual(405);
+        expect(res.body).toEqual({
+          message: METHOD_NOT_ALLOWED,
+        });
+        done();
+      })
+      .catch((err: Error) => {
         panic(err, done);
       });
   });

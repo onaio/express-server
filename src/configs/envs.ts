@@ -116,3 +116,6 @@ export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDI
 
 export const EXPRESS_RESPONSE_HEADERS = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
 export type EXPRESS_RESPONSE_HEADERS = typeof EXPRESS_RESPONSE_HEADERS;
+
+export const { NODE_ENV } = process.env;
+export type NODE_ENV = typeof NODE_ENV;

@@ -40,8 +40,15 @@ import {
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
   EXPRESS_RESPONSE_HEADERS,
+  NODE_ENV,
 } from '../configs/envs';
-import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
+import {
+  METHOD_NOT_ALLOWED,
+  NodeEnvVariables,
+  SESSION_IS_EXPIRED,
+  TOKEN_NOT_FOUND,
+  TOKEN_REFRESH_FAILED,
+} from '../constants';
 
 type Dictionary = { [key: string]: unknown };
 
@@ -307,6 +314,10 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
 };
 
 const oauthState = (req: express.Request, res: express.Response) => {
+  const isDevelopment = NODE_ENV === NodeEnvVariables.DEVELOPMENT;
+  if (!isDevelopment) {
+    return res.status(405).send({ message: METHOD_NOT_ALLOWED });
+  }
   // check if logged in
   if (!req.session.preloadedState) {
     winstonLogger.info('Not authorized');
