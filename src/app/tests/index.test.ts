@@ -404,6 +404,25 @@ describe('src/index.ts', () => {
       });
   });
 
+  it('/oauth/state is not accessed in prod envs', (done) => {
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+    const envModule = require('../../configs/envs');
+    envModule.NODE_ENV = false;
+    // call refresh token
+    request(app)
+      .get('/oauth/state')
+      .then((res: request.Response) => {
+        expect(res.status).toEqual(405);
+        expect(res.body).toEqual({
+          message: METHOD_NOT_ALLOWED,
+        });
+        done();
+      })
+      .catch((err: Error) => {
+        panic(err, done);
+      });
+  });
+
   it('handle error middleware works', (done) => {
     const winston = jest.spyOn(winstonLogger, 'error');
     const res = {} as express.Response;
@@ -473,28 +492,6 @@ describe('src/index.ts', () => {
         done();
       })
       .catch((err) => {
-        panic(err, done);
-      });
-  });
-
-  it('/oauth/state is not accessed in prod envs', (done) => {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    jest.resetModules();
-    jest.mock('../../configs/envs', () => ({
-      ...jest.requireActual('../../configs/envs'),
-      NODE_ENV: 'production',
-    }));
-    // call refresh token
-    request(app)
-      .get('/oauth/token')
-      .then((res: request.Response) => {
-        expect(res.status).toEqual(405);
-        expect(res.body).toEqual({
-          message: METHOD_NOT_ALLOWED,
-        });
-        done();
-      })
-      .catch((err: Error) => {
         panic(err, done);
       });
   });
