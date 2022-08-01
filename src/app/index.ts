@@ -40,7 +40,7 @@ import {
   EXPRESS_RESPONSE_HEADERS,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
-import { decodeAndparseJwtToken, sessionLogout } from './utils';
+import { parseOauthClientData, sessionLogout } from './utils';
 
 const opensrpAuth = new ClientOAuth2({
   accessTokenUri: EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
@@ -266,7 +266,7 @@ const refreshToken = (req: express.Request, res: express.Response, next: express
   return token
     .refresh()
     .then((oauthRes) => {
-      const opensrpUserInfo = decodeAndparseJwtToken(oauthRes);
+      const opensrpUserInfo = parseOauthClientData(oauthRes);
       const preloadedState = processUserInfo(req, res, opensrpUserInfo, true);
       return res.json(preloadedState);
     })
@@ -282,7 +282,7 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
     .getToken(req.originalUrl)
     .then((user: ClientOAuth2.Token) => {
       try {
-        const opensrpUserInfo = decodeAndparseJwtToken(user);
+        const opensrpUserInfo = parseOauthClientData(user);
         processUserInfo(req, res, opensrpUserInfo);
       } catch (__) {
         res.redirect('/logout?serverLogout=true');

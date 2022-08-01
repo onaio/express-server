@@ -1,25 +1,19 @@
 import { getOpenSRPUserInfo } from '@onaio/gatekeeper';
+import { RawOpensrpUserInfo } from '@onaio/gatekeeper/dist/types/helpers/oauth';
 import { SessionState } from '@onaio/session-reducer';
 import ClientOAuth2 from 'client-oauth2';
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import { EXPRESS_SESSION_NAME } from '../configs/envs';
 
 const sessionName = EXPRESS_SESSION_NAME;
 
 /** gets JWT access-token, decodes it and transforms it into session state object */
-const decodeAndparseJwtToken = (oauthClient: ClientOAuth2.Token) => {
-  const tokenClaims = jwt.decode(oauthClient.accessToken) as jwt.JwtPayload | null;
-  if (tokenClaims) {
-    const rawUserInfo = {
-      ...tokenClaims,
-      oAuth2Data: oauthClient.data,
-    };
-    const opensrpUserInfo = getOpenSRPUserInfo(rawUserInfo) as unknown as SessionState;
-    return opensrpUserInfo;
-  }
+const parseOauthClientData = (oauthClient: ClientOAuth2.Token) => {
+  const rawUserInfo = {
+    oAuth2Data: oauthClient.data,
+  } as RawOpensrpUserInfo;
 
-  throw Error('Could not parse token');
+  return getOpenSRPUserInfo(rawUserInfo) as unknown as SessionState;
 };
 
 /** kill session */
@@ -28,4 +22,4 @@ const sessionLogout = (req: express.Request, res: express.Response) => {
   res.clearCookie(sessionName);
 };
 
-export { decodeAndparseJwtToken, sessionLogout };
+export { parseOauthClientData, sessionLogout };
