@@ -7,7 +7,6 @@ import Redis from 'ioredis';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
-  EXPRESS_KEYCLOAK_LOGOUT_URL,
   EXPRESS_OPENSRP_LOGOUT_URL,
   EXPRESS_FRONTEND_LOGIN_URL,
 } from '../../configs/envs';
@@ -64,7 +63,10 @@ jest.mock('client-oauth2', () => {
   class TokenFlow {
     public data = (() => ({
       access_token: jwtAccessTokenMock,
+      id_token: 'id_token_hint',
       expires_in: 3221,
+      refresh_expires_in: 2592000,
+      refresh_token: '808f060c-be93-459e-bd56-3074d9b96229',
       scope: 'openid read write',
       token_type: 'bearer',
     }))();
@@ -314,7 +316,9 @@ describe('src/index.ts', () => {
       .get('/logout?serverLogout=true')
       .set('Cookie', sessionString)
       .then((res: request.Response) => {
-        expect(res.header.location).toEqual(`${EXPRESS_KEYCLOAK_LOGOUT_URL}?`);
+        expect(res.header.location).toEqual(
+          'https://keycloak-stage.smartregister.org/auth/realms/reveal-stage/protocol/openid-connect/logout?post_logout_redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogout&id_token_hint=id_token_hint',
+        );
         expect(res.redirect).toBeTruthy();
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(EXPRESS_OPENSRP_LOGOUT_URL, {
