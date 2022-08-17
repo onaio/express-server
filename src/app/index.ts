@@ -48,7 +48,7 @@ const opensrpAuth = new ClientOAuth2({
   clientId: EXPRESS_OPENSRP_CLIENT_ID,
   clientSecret: EXPRESS_OPENSRP_CLIENT_SECRET,
   redirectUri: EXPRESS_OPENSRP_CALLBACK_URL,
-  scopes: ['openid'],
+  scopes: ['openid', 'profile'],
   state: EXPRESS_OPENSRP_OAUTH_STATE,
 });
 const loginURL = EXPRESS_SESSION_LOGIN_URL;
