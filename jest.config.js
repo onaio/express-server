@@ -7,7 +7,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   testEnvironment: 'node',
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/tests/', '!src/index.ts'],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/tests/', '!src/index.ts', '!src/types/index.ts'],
   coverageReporters: ['lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };
