@@ -1,6 +1,6 @@
 import ClientOauth2 from 'client-oauth2';
 import request from 'supertest';
-import app from '../index';
+import app, { HttpException } from '../index';
 
 const oauthCallbackUri = '/oauth/callback/OpenSRP/?code=Boi4Wz&state=openssh';
 
@@ -50,6 +50,14 @@ describe('src/index.ts', () => {
     JSON.parse = actualJsonParse;
     jest.resetAllMocks();
     jest.clearAllMocks();
+  });
+
+  it('exercise httpexception code', () => {
+    const errorMessage = 'some error Message';
+    const err = new HttpException(500, errorMessage);
+
+    expect(err.message).toBe(errorMessage);
+    expect(err.statusCode).toBe(500);
   });
 
   it('E2E: oauth/opensea/callback handles error correctly', (done) => {

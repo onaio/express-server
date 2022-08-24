@@ -1,4 +1,3 @@
-import { getOpenSRPUserInfo } from '@onaio/gatekeeper';
 import ClientOAuth2 from 'client-oauth2';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -11,9 +10,9 @@ import fetch from 'node-fetch';
 import morgan from 'morgan';
 import path from 'path';
 import querystring from 'querystring';
-import request from 'request';
 import sessionFileStore from 'session-file-store';
 import { parse } from 'url';
+import { SessionState } from '@onaio/session-reducer';
 import { winstonLogger, winstonStream } from '../configs/winston';
 import {
   EXPRESS_ALLOW_TOKEN_RENEWAL,
@@ -28,7 +27,6 @@ import {
   EXPRESS_OPENSRP_CLIENT_SECRET,
   EXPRESS_OPENSRP_LOGOUT_URL,
   EXPRESS_OPENSRP_OAUTH_STATE,
-  EXPRESS_OPENSRP_USER_URL,
   EXPRESS_REACT_BUILD_PATH,
   EXPRESS_SERVER_LOGOUT_URL,
   EXPRESS_SESSION_FILESTORE_PATH,
@@ -42,8 +40,7 @@ import {
   EXPRESS_RESPONSE_HEADERS,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
-
-type Dictionary = { [key: string]: unknown };
+import { parseOauthClientData, sessionLogout } from './utils';
 
 const opensrpAuth = new ClientOAuth2({
   accessTokenUri: EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
@@ -51,7 +48,7 @@ const opensrpAuth = new ClientOAuth2({
   clientId: EXPRESS_OPENSRP_CLIENT_ID,
   clientSecret: EXPRESS_OPENSRP_CLIENT_SECRET,
   redirectUri: EXPRESS_OPENSRP_CALLBACK_URL,
-  scopes: ['read', 'write'],
+  scopes: ['openid', 'profile'],
   state: EXPRESS_OPENSRP_OAUTH_STATE,
 });
 const loginURL = EXPRESS_SESSION_LOGIN_URL;
@@ -151,7 +148,7 @@ app.use((_, res, next) => {
   next();
 });
 
-class HttpException extends Error {
+export class HttpException extends Error {
   public statusCode: number;
 
   public message: string;
@@ -193,19 +190,23 @@ const oauthLogin = (_: express.Request, res: express.Response) => {
 const processUserInfo = (
   req: express.Request,
   res: express.Response,
-  authDetails: Dictionary,
-  userDetails?: Dictionary,
+  processedUserDetails?: SessionState,
   isRefresh?: boolean,
 ) => {
   // get user details from session. will be needed when refreshing token
-  const userInfo = userDetails ?? req.session.preloadedState?.session?.extraData ?? {};
+  let userInfo = processedUserDetails ?? req.session.preloadedState?.session?.extraData ?? {};
   const date = new Date(Date.now());
   const sessionExpiryTime = req.session.preloadedState?.session_expires_at;
   const sessionExpiresAt = isRefresh
     ? sessionExpiryTime
     : new Date(date.setSeconds(date.getSeconds() + EXPRESS_MAXIMUM_SESSION_LIFE_TIME)).toISOString();
-  userInfo.oAuth2Data = authDetails;
-  const sessionState = getOpenSRPUserInfo(userInfo);
+  userInfo = {
+    ...userInfo,
+    extraData: {
+      ...userInfo.extraData,
+    },
+  };
+  const sessionState = userInfo;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (sessionState) {
     const gatekeeperState = {
@@ -265,7 +266,8 @@ const refreshToken = (req: express.Request, res: express.Response, next: express
   return token
     .refresh()
     .then((oauthRes) => {
-      const preloadedState = processUserInfo(req, res, oauthRes.data, undefined, true);
+      const opensrpUserInfo = parseOauthClientData(oauthRes);
+      const preloadedState = processUserInfo(req, res, opensrpUserInfo, true);
       return res.json(preloadedState);
     })
     .catch((error: Error) => {
@@ -279,27 +281,12 @@ const oauthCallback = (req: express.Request, res: express.Response, next: expres
   provider.code
     .getToken(req.originalUrl)
     .then((user: ClientOAuth2.Token) => {
-      const url = EXPRESS_OPENSRP_USER_URL;
-      request.get(
-        url,
-        user.sign({
-          method: 'GET',
-          url,
-        }),
-        (error: Error, _: request.Response, body: string) => {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (error) {
-            next(error); // pass error to express
-          }
-          let apiResponse: Dictionary;
-          try {
-            apiResponse = JSON.parse(body);
-            processUserInfo(req, res, user.data, apiResponse);
-          } catch (__) {
-            res.redirect('/logout?serverLogout=true');
-          }
-        },
-      );
+      try {
+        const opensrpUserInfo = parseOauthClientData(user);
+        processUserInfo(req, res, opensrpUserInfo);
+      } catch (__) {
+        res.redirect('/logout?serverLogout=true');
+      }
     })
     .catch((e: Error) => {
       next(e); // pass error to express
@@ -337,6 +324,7 @@ const loginRedirect = (req: express.Request, res: express.Response, _: express.N
 const logout = async (req: express.Request, res: express.Response) => {
   if (req.query.serverLogout) {
     const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+    const idTokenHint = req.session.preloadedState?.session?.extraData?.oAuth2Data?.id_token;
     const payload = {
       headers: {
         accept: 'application/json',
@@ -345,14 +333,22 @@ const logout = async (req: express.Request, res: express.Response) => {
       },
       method: 'GET',
     };
-    if (accessToken) {
+    if (accessToken && EXPRESS_OPENSRP_LOGOUT_URL) {
       await fetch(EXPRESS_OPENSRP_LOGOUT_URL, payload);
     }
-    const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?redirect_uri=${EXPRESS_SERVER_LOGOUT_URL}`;
+    let logoutParams = {};
+    if (idTokenHint) {
+      logoutParams = {
+        post_logout_redirect_url: EXPRESS_SERVER_LOGOUT_URL,
+        id_token_hint: idTokenHint,
+      };
+    }
+    const searchQuery = new URLSearchParams(logoutParams).toString();
+    const keycloakLogoutFullPath = `${EXPRESS_KEYCLOAK_LOGOUT_URL}?${searchQuery}`;
+    sessionLogout(req, res);
     res.redirect(keycloakLogoutFullPath);
   } else {
-    req.session.destroy(() => undefined);
-    res.clearCookie(sessionName);
+    sessionLogout(req, res);
     res.redirect(loginURL);
   }
 };
