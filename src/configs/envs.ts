@@ -85,4 +85,4 @@ export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDI
 
 export const EXPRESS_RESPONSE_HEADERS = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
 
-export const EXPRESS_OPENSRP_SCOPES = process.env.EXPRESS_OPENSRP_SCOPES?.split(',') || 'read,write';
+export const EXPRESS_OPENSRP_SCOPES = (process.env.EXPRESS_OPENSRP_SCOPES || 'openid,profile').split(',');

@@ -77,4 +77,4 @@ export const EXPRESS_RESPONSE_HEADERS = {
     '{ "group": "csp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/csp-reports" }] }, { "group": "hpkp-endpoint", "max_age": 10886400, "endpoints": [{ "url": "https://example.com/hpkp-reports" }] }',
 };
 
-export const EXPRESS_OPENSRP_SCOPES = ['write', 'read'];
+export const EXPRESS_OPENSRP_SCOPES = ['openid', 'profile'];
