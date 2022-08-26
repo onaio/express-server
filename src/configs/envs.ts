@@ -84,3 +84,5 @@ export const { EXPRESS_REDIS_STAND_ALONE_URL } = process.env;
 export const EXPRESS_REDIS_SENTINEL_CONFIG = JSON.parse(process.env.EXPRESS_REDIS_SENTINEL_CONFIG || '{}');
 
 export const EXPRESS_RESPONSE_HEADERS = JSON.parse(process.env.EXPRESS_RESPONSE_HEADERS || '{}');
+
+export const EXPRESS_OPENSRP_SCOPES = (process.env.EXPRESS_OPENSRP_SCOPES || 'openid,profile').split(',');

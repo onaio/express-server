@@ -38,6 +38,7 @@ import {
   EXPRESS_REDIS_SENTINEL_CONFIG,
   EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
   EXPRESS_RESPONSE_HEADERS,
+  EXPRESS_OPENSRP_SCOPES,
 } from '../configs/envs';
 import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../constants';
 import { parseOauthClientData, sessionLogout } from './utils';
@@ -48,7 +49,7 @@ const opensrpAuth = new ClientOAuth2({
   clientId: EXPRESS_OPENSRP_CLIENT_ID,
   clientSecret: EXPRESS_OPENSRP_CLIENT_SECRET,
   redirectUri: EXPRESS_OPENSRP_CALLBACK_URL,
-  scopes: ['openid', 'profile'],
+  scopes: EXPRESS_OPENSRP_SCOPES,
   state: EXPRESS_OPENSRP_OAUTH_STATE,
 });
 const loginURL = EXPRESS_SESSION_LOGIN_URL;
