@@ -69,9 +69,7 @@ export const EXPRESS_LOGS_FILE_PATH = process.env.EXPRESS_LOGS_FILE_PATH || './l
 export const EXPRESS_COMBINED_LOGS_FILE_PATH =
   process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 
-const defaultCsp = JSON.stringify({
-  'default-src': ['none'],
-});
+const defaultCsp = JSON.stringify({});
 
 export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = JSON.parse(
   process.env.EXPRESS_CONTENT_SECURITY_POLICY_CONFIG || defaultCsp,

@@ -59,17 +59,19 @@ const app = express();
 app.use(compression()); // Compress all routes
 // helps mitigate cross-site scripting attacks and other known vulnerabilities
 
-app.use(
-  helmet({
-    // override default contentSecurityPolicy directive like script-src to include cloudflare cdn and github static content
-    // might consider turning this off to allow individual front-ends set Content-Security-Policy on meta tags themselves if list grows long
-    // <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'  https://cdnjs.cloudflare.com;" >
-    contentSecurityPolicy: {
-      directives: EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
-    },
-    crossOriginEmbedderPolicy: false,
-  }),
-);
+if (Object.entries(EXPRESS_CONTENT_SECURITY_POLICY_CONFIG).length) {
+  app.use(
+    helmet({
+      // override default contentSecurityPolicy directive like script-src to include cloudflare cdn and github static content
+      // might consider turning this off to allow individual front-ends set Content-Security-Policy on meta tags themselves if list grows long
+      // <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'  https://cdnjs.cloudflare.com;" >
+      contentSecurityPolicy: {
+        directives: EXPRESS_CONTENT_SECURITY_POLICY_CONFIG,
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
+}
 app.use(morgan('combined', { stream: winstonStream })); // send request logs to winston streamer
 
 let sessionStore: session.Store;
