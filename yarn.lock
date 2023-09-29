@@ -584,10 +584,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@onaio/gatekeeper@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@onaio/gatekeeper/-/gatekeeper-0.4.0.tgz#0ef97d1dcb94bd52e390026a12e6ba216f5b4725"
-  integrity sha512-GXIFLKYWFnFUOVA/Y3JFLaAOOvecdFkyWkm9K2aCCP0lTQ8N0Ek4ET8YuoqLz0DT6E7VaACsj4j4Tcb5ERRQ6A==
+"@onaio/gatekeeper@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@onaio/gatekeeper/-/gatekeeper-1.0.0.tgz#6eadc0b27a95c392a23b09b5273cf607ce870a9e"
+  integrity sha512-7vMcbURLocmmHUUHNt/nNfIpcExKuL8LhVlbaTA4DmVxZkNJKtA648QnJGBVAF+O3prhFso+jb0m0xehGx4JZA==
   dependencies:
     "@onaio/session-reducer" "^0.0.13"
     client-oauth2 "^4.3.3"

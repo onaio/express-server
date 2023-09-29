@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@onaio/gatekeeper": "^0.4.0",
+    "@onaio/gatekeeper": "^1.0.0",
     "@onaio/session-reducer": "^0.0.13",
     "client-oauth2": "^4.3.3",
     "compression": "^1.7.4",
