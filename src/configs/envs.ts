@@ -69,13 +69,7 @@ export const EXPRESS_LOGS_FILE_PATH = process.env.EXPRESS_LOGS_FILE_PATH || './l
 export const EXPRESS_COMBINED_LOGS_FILE_PATH =
   process.env.EXPRESS_COMBINED_LOGS_FILE_PATH || './logs/default-error-and-info.log';
 
-const defaultCsp = JSON.stringify({
-  'default-src': ['none'],
-});
-
-export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = JSON.parse(
-  process.env.EXPRESS_CONTENT_SECURITY_POLICY_CONFIG || defaultCsp,
-);
+export const { EXPRESS_CONTENT_SECURITY_POLICY_CONFIG } = process.env;
 
 // see https://github.com/luin/ioredis#connect-to-redis
 export const { EXPRESS_REDIS_STAND_ALONE_URL } = process.env;

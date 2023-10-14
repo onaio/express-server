@@ -424,6 +424,52 @@ describe('src/index.ts', () => {
     done();
   });
 
+  it('can disable express csp configs', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: 'false',
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    request(app2)
+      .get('/')
+      .expect(200)
+      .expect((res) => {
+        const csp = res.headers['content-security-policy'];
+        expect(csp).toBeUndefined();
+      })
+      .catch((err: Error) => {
+        throw err;
+      })
+      .finally(() => {
+        done();
+      });
+  });
+
+  it('can report csp conflicts instead of failing', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: `{"reportOnly": true, "useDefaults": false, "default-src": ["''self''"]}`,
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    request(app2)
+      .get('/')
+      .expect(200)
+      .expect((res) => {
+        const csp = res.headers['content-security-policy'];
+        const cspOnly = res.headers['content-security-policy-report-only'];
+        expect(csp).toBeUndefined();
+        expect(cspOnly).toEqual(`default-src ''self''`);
+      })
+      .catch((err: Error) => {
+        throw err;
+      })
+      .finally(() => {
+        done();
+      });
+  });
+
   it('uses single redis node as session storage', (done) => {
     jest.resetModules();
     jest.mock('../../configs/envs', () => ({

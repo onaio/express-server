@@ -67,10 +67,7 @@ export const EXPRESS_MAXIMUM_LOG_FILES_NUMBER = 5;
 export const EXPRESS_LOGS_FILE_PATH = './logs/default-error.log';
 
 export const EXPRESS_COMBINED_LOGS_FILE_PATH = './logs/default-error-and-info.log';
-export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = {
-  'default-src': ["'self'"],
-  reportUri: 'https://example.com',
-};
+export const EXPRESS_CONTENT_SECURITY_POLICY_CONFIG = `{"default-src":["'self'"],"reportUri":"https://example.com"}`;
 
 export const EXPRESS_RESPONSE_HEADERS = {
   'Report-To':
