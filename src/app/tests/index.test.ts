@@ -4,6 +4,7 @@ import ClientOauth2 from 'client-oauth2';
 import request from 'supertest';
 import express from 'express';
 import Redis from 'ioredis';
+import { resolve } from 'path';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
@@ -429,6 +430,7 @@ describe('src/index.ts', () => {
     jest.mock('../../configs/envs', () => ({
       ...jest.requireActual('../../configs/envs'),
       EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: 'false',
+      EXPRESS_REACT_BUILD_PATH: resolve(__dirname, '../../configs/__mocks__/build'),
     }));
     const { default: app2 } = jest.requireActual('../index');
     request(app2)
@@ -451,6 +453,7 @@ describe('src/index.ts', () => {
     jest.mock('../../configs/envs', () => ({
       ...jest.requireActual('../../configs/envs'),
       EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: `{"reportOnly": true, "useDefaults": false, "default-src": ["''self''"]}`,
+      EXPRESS_REACT_BUILD_PATH: resolve(__dirname, '../../configs/__mocks__/build'),
     }));
     const { default: app2 } = jest.requireActual('../index');
     request(app2)
