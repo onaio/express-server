@@ -4,6 +4,7 @@ import ClientOauth2 from 'client-oauth2';
 import request from 'supertest';
 import express from 'express';
 import Redis from 'ioredis';
+import { resolve } from 'path';
 import {
   EXPRESS_FRONTEND_OPENSRP_CALLBACK_URL,
   EXPRESS_SESSION_LOGIN_URL,
@@ -422,6 +423,54 @@ describe('src/index.ts', () => {
 
     expect(winston).toHaveBeenCalledTimes(2);
     done();
+  });
+
+  it('can disable express csp configs', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: 'false',
+      EXPRESS_REACT_BUILD_PATH: resolve(__dirname, '../../configs/__mocks__/build'),
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    request(app2)
+      .get('/')
+      .expect(200)
+      .expect((res) => {
+        const csp = res.headers['content-security-policy'];
+        expect(csp).toBeUndefined();
+      })
+      .catch((err: Error) => {
+        throw err;
+      })
+      .finally(() => {
+        done();
+      });
+  });
+
+  it('can report csp conflicts instead of failing', (done) => {
+    jest.resetModules();
+    jest.mock('../../configs/envs', () => ({
+      ...jest.requireActual('../../configs/envs'),
+      EXPRESS_CONTENT_SECURITY_POLICY_CONFIG: `{"reportOnly": true, "useDefaults": false, "default-src": ["''self''"]}`,
+      EXPRESS_REACT_BUILD_PATH: resolve(__dirname, '../../configs/__mocks__/build'),
+    }));
+    const { default: app2 } = jest.requireActual('../index');
+    request(app2)
+      .get('/')
+      .expect(200)
+      .expect((res) => {
+        const csp = res.headers['content-security-policy'];
+        const cspOnly = res.headers['content-security-policy-report-only'];
+        expect(csp).toBeUndefined();
+        expect(cspOnly).toEqual(`default-src ''self''`);
+      })
+      .catch((err: Error) => {
+        throw err;
+      })
+      .finally(() => {
+        done();
+      });
   });
 
   it('uses single redis node as session storage', (done) => {
