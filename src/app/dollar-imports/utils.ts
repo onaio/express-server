@@ -60,7 +60,7 @@ export async function parseJobResponse(job: BullJob){
         try{
             statusReason = JSON.parse(job.failedReason ?? "{}")
         }catch{
-            statusReason = {stdErr: job.failedReason, stdout: ""}
+            statusReason = {stderr: job.failedReason, stdout: ""}
         }
     }
     if(status === "completed"){

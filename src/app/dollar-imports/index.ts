@@ -30,8 +30,8 @@ const upload = multer({ storage: storage });
 // Middleware function to check for session
 const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.preloadedState) {
-    // return res.json({ error: 'Not authorized' });
-    next()
+    return res.json({ error: 'Not authorized' });
+    // next()
   }else{
     next()
   }
@@ -105,17 +105,18 @@ importerRouter.post('/', sessionChecker, upload.any(), async (req, res) => {
   // TODO - move creating file to be middleware after authenticating
   const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
   const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
-  const user = req.session.preloadedState?.session?.username
+  const user = req.session.preloadedState?.session?.user?.username
   const importerConfig = generateImporterSCriptConfig(accessToken, refreshToken)
   await writeImporterScriptConfig(importerConfig)
 
+  const uploadId = randomUUID()
   const workflowArgs = files?.map(file => {
-    const uploadId = randomUUID()
     const jobId = `${uploadId}_${file.fieldname}`
     return {
       workflowType: file.fieldname,
       filePath: file.path,
-      workflowId: jobId
+      workflowId: jobId,
+      author: user
     }
   })
 

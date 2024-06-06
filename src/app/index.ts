@@ -352,19 +352,19 @@ router.use(express.static(BUILD_PATH, { maxAge: '30d' }));
 // sends other routes to be handled by React Router
 router.use('*', renderer);
 
-// Define permissive CORS options
-const corsOptions = {
-  origin: '*', // Allow all origins
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allow all HTTP methods
-  allowedHeaders: '*', // Allow all headers
-  exposedHeaders: '*', // Expose all headers to the browser
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-  preflightContinue: false, // Pass the CORS preflight response to the next handler
-  optionsSuccessStatus: 204 // Use status 204 for successful OPTIONS requests
-};
+// // Define permissive CORS options
+// const corsOptions = {
+//   origin: '*', // Allow all origins
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allow all HTTP methods
+//   allowedHeaders: '*', // Allow all headers
+//   exposedHeaders: '*', // Expose all headers to the browser
+//   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+//   preflightContinue: false, // Pass the CORS preflight response to the next handler
+//   optionsSuccessStatus: 204 // Use status 204 for successful OPTIONS requests
+// };
 
-// Use the CORS middleware with the options
-app.use(cors(corsOptions));
+// // Use the CORS middleware with the options
+// app.use(cors(corsOptions));
 
 // tell the app to use the above rules
 app.use(router);

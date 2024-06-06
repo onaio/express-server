@@ -33,7 +33,7 @@ export class Job {
     async precondition() {
         const allJobs = await this.job.queue.getJobs([])
         // find jobs that are related with this upload.
-        const thisJobUploadId = this.workflowId.split("_getJobs")[0]
+        const thisJobUploadId = this.workflowId.split("_")[0] // TODO - separator can be constant
         const relatedJobs = allJobs.filter((job: BullJob) => {
             const jobId = job.id as string
             const otherJobUploadId = jobId.split("_")[0]
@@ -41,19 +41,24 @@ export class Job {
         })
         // find jobs whose workflow type is superior to this and get status.
         const precedingJobTypes = dependencyGraph[this.workflowType] ?? []
+        // console.log({relatedJobs, precedingJobTypes, thisJobUploadId})
         const precedingJobs = relatedJobs.filter(job => {
             return precedingJobTypes.includes(job.data.workflowType)
         })
+        // console.log({precedingJobs, thisJobUploadId})
         const preceedingJobsStatus = []
         for (const job of precedingJobs) {
             const jobState = await job.getState()
-            preceedingJobsStatus.push(jobState)
+            preceedingJobsStatus.push({jobState, workflowType: job.data.workflowType})
         }
-        if (preceedingJobsStatus.some(status => status === "failed")) {
-            throw new Error("Preceeding job failed")
-        }
+        const failedStates = preceedingJobsStatus.filter(status => status.jobState === "failed")
 
-        const incompleteJobs = preceedingJobsStatus.filter(status => status !== "completed")
+        if (failedStates.length) {
+            throw new Error(`Preceeding job of type ${failedStates.map(state => state.workflowType).join()} failed`)
+        }
+        // console.log({preceedingJobsStatus})
+
+        const incompleteJobs = preceedingJobsStatus.filter(status => status.jobState !== "completed")
         if (incompleteJobs.length) {
             this.preconditionPassed = false
             // keep running loop
@@ -64,15 +69,32 @@ export class Job {
         /** we now check that if jobs that we consider primary are in the queue and their status */
     }
 
-    async runPrecondition() {
-        // Start the task with setInterval
-        this.preconditionInterval = setInterval(() => this.precondition(), 1000); // Run every 1 second
-    }
+    // async runPrecondition() {
+    //     // Start the task with setInterval
+    //     return new Promise((resolve, reject) => {
+    //         try{
+    //             this.preconditionInterval = setInterval(async () => {try {await this.precondition()}catch(err){
+    //                 reject(err)
+    //             }}, 1000); // Run every 1 second
+    //         }catch(err){
+    //             console.log({err})
+    //             reject(err)
+    //         }
+    //     })
+    // }
 
     async asyncDoTask() {
         // const hasRun = false
-        this.runPrecondition()
+        // try{this.runPrecondition()}catch{
+            
+        // }
         return new Promise((resolve, reject) => {
+            // try{
+            //     this.precondition()
+            // }catch(err){
+            //     reject(err)
+            // }
+            // this.runPrecondition().catch(err => reject(err))
             const doTaskIntervalId = setInterval(async () => {
                 if (this.preconditionPassed) {
                     clearInterval(doTaskIntervalId)
@@ -83,6 +105,13 @@ export class Job {
                     } catch (error) {
                         reject(error);
                     }
+                }else{
+                    try {
+                        await this.precondition();
+                    } catch (error) {
+                        reject(error);
+                    }
+                    // this.precondition()
                 }
             }, 1000)
         })
@@ -131,21 +160,21 @@ export class Job {
 export function getImportScriptArgs(workflowType: string, filePath: string) {
     switch (workflowType) {
         case UploadWorkflowTypes.Locations:
-            return ['--csv_file', filePath, "--resource_type", "locations"]
+            return ['--csv_file', filePath, "--resource_type", "locations", "--only_response", "true"]
         case UploadWorkflowTypes.Users:
-            return ['--csv_file', filePath, "--resource_type", "users"]
+            return ['--csv_file', filePath, "--resource_type", "users", "--only_response", "true"]
         case UploadWorkflowTypes.Careteams:
-            return ['--csv_file', filePath, "--resource_type", "careTeams"]
+            return ['--csv_file', filePath, "--resource_type", "careTeams", "--only_response", "true"]
         case UploadWorkflowTypes.orgToLocationAssignment:
-            return ['--csv_file', filePath, "--assign", "organizations-locations"]
+            return ['--csv_file', filePath, "--assign", "organizations-locations", "--only_response", "true"]
         case UploadWorkflowTypes.userToOrganizationAssignment:
-            return ['--csv_file', filePath, "--assign", "users-organizations"]
+            return ['--csv_file', filePath, "--assign", "users-organizations", "--only_response", "true"]
         case UploadWorkflowTypes.Organizations:
-            return ['--csv_file', filePath, "--resource_type", "organizations"]
+            return ['--csv_file', filePath, "--resource_type", "organizations", "--only_response", "true"]
         case UploadWorkflowTypes.Inventory:
-            return ['--csv_file', filePath, "--setup", "products"]
+            return ['--csv_file', filePath, "--setup", "products", "--only_response", "true"]
         case UploadWorkflowTypes.Product:
-            return ['--csv_file', filePath, "--setup", "inventories"]
+            return ['--csv_file', filePath, "--setup", "inventories", "--only_response", "true"]
         default:
             return []
     }

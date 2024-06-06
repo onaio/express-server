@@ -25,8 +25,6 @@ export function generateImporterSCriptConfig(accessToken?: string, refreshToken?
     if(refreshToken) outputString += `refresh_token = "${refreshToken }"\n`
     if(keycloakBaseUrl) outputString += `keycloak_url = "${keycloakBaseUrl}"\n`
     if(EXPRESS_OPENSRP_SERVER_URL) outputString += `fhir_base_url = "${EXPRESS_OPENSRP_SERVER_URL}"\n`
-    outputString += `username = "${"webmaster"}"\n`
-    outputString += `password = "${"admin"}"\n`
     return outputString
 }
 
