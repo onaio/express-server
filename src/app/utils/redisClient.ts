@@ -9,7 +9,9 @@ export const getRedisClient = () => {
     // use redis session store if redis is available else default to file store
     // check for and use a single redis node
     if (EXPRESS_REDIS_STAND_ALONE_URL !== undefined) {
-        const redisClient = new Redis(EXPRESS_REDIS_STAND_ALONE_URL);
+        // TODO allow options only for dev server
+        const redisClient = new Redis(EXPRESS_REDIS_STAND_ALONE_URL, {maxRetriesPerRequest: null,
+            enableReadyCheck: false});
 
         redisClient.on('connect', () => winstonLogger.info('Redis single node client connected!'));
         redisClient.on('reconnecting', () => winstonLogger.info('Redis single node client trying to reconnect'));

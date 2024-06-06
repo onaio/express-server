@@ -1,58 +1,64 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
-import archiver from 'archiver';
 import path from 'path';
 import fs from 'fs';
-import { ResourceUploadCode, getAllTemplateFilePaths, getTemplateFilePath } from './utils';
+import { mkdir } from 'fs/promises';
+import { getAllTemplateFilePaths, getTemplateFilePath, parseJobResponse } from './utils';
 import AdmZip from 'adm-zip';
-import { getTemporalioClient } from './temporalioClient';
-
+import { importQ } from './queue';
+import { generateImporterSCriptConfig, writeImporterScriptConfig } from './utils/importerConfigWriter';
+import { randomUUID } from 'crypto';
+import {Job as BullJob} from 'bull';
 
 
 const importerRouter = express.Router();
-const upload = multer({ dest: '/tmp/csvUploads' });
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    const folderPath = `/tmp/csvUploads/${uniqueSuffix}`
+    if (!fs.existsSync(folderPath)) {
+      await mkdir(folderPath, { recursive: true })
+    }
+    cb(null, folderPath)
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+const upload = multer({ storage: storage });
 
-// Sample data
-const list = ['item1', 'item2', 'item3'];
-const object = { slug: 'objectData' };
-const workflowIds = ['workflow1', 'workflow2', 'workflow3'];
+// Middleware function to check for session
+const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session.preloadedState) {
+    // return res.json({ error: 'Not authorized' });
+    next()
+  }else{
+    next()
+  }
+};
 
 // Handle GET requests on `` that returns a list
-importerRouter.get('/', async(req, res) => {
-  const client = await getTemporalioClient()
-  const wkFlowExecutionsResponse = await client.workflowService.listWorkflowExecutions({
-    namespace: "default" // TODO - configurable?
-  })
-  const wkFlowExecutions = wkFlowExecutionsResponse.executions
-
-  /**
-   * {
-    execution: WorkflowExecution {
-      workflowId: '1716815834524',
-      runId: 'c4a686e7-d401-441b-a9a4-672ba40799e5'
-    },
-    type: WorkflowType { name: 'UploadWorkflowManager' },
-    startTime: Timestamp { seconds: [Long], nanos: 527906000 },
-    closeTime: Timestamp { seconds: [Long], nanos: 450848000 },
-    status: 5,
-    historyLength: Long { low: 5, high: 0, unsigned: false },
-    executionTime: Timestamp { seconds: [Long], nanos: 527906000 },
-    memo: Memo { fields: {} },
-    taskQueue: 'user_upload',
-    historySizeBytes: Long { low: 2546, high: 0, unsigned: false }
+importerRouter.get('/', sessionChecker, async (req, res) => {
+  const jobs = await importQ.getJobs();
+  const returnData = []
+  for (const job of jobs) {
+    const rtn_Val = await parseJobResponse(job);
+    returnData.push(rtn_Val);
   }
-   */
-  res.json(list);
+  res.json(returnData.sort((a, b) => {
+    const diff = b.dateCreated - a.dateCreated
+    return diff === 0 ? 0 : diff > 0 ? 1 : -1
+  }))
 });
 
 
 // Handle GET requests to `/templates` that returns a folder zip of empty CSV resource files or a zip of a single resource file
-importerRouter.get('/templates', async (req, res) => {
+importerRouter.get('/templates', sessionChecker, async (req, res) => {
   const uploadCodeTemplate = req.query.resourceTemplate;
 
   if (typeof uploadCodeTemplate === "string") {
     // Send a single template file
-    const templatePath = getTemplateFilePath(uploadCodeTemplate as ResourceUploadCode) ?? ""
+    const templatePath = getTemplateFilePath(uploadCodeTemplate as any) ?? ""
     if (fs.existsSync(templatePath)) {
       res.download(templatePath);
     } else {
@@ -81,47 +87,64 @@ importerRouter.get('/templates', async (req, res) => {
 
 
 // Handle GET requests on `/slug` that returns an object
-importerRouter.get('/:slug', async (req, res) => {
+importerRouter.get('/:slug', sessionChecker, async (req, res) => {
   const wkFlowId = req.params.slug
-  const client = await getTemporalioClient()
-  const wkFlowExecutionsResponse = await client.workflowService.listWorkflowExecutions({
-    namespace: "default", // TODO - configurable?,
-    query: `WorkflowId="${wkFlowId}"`
-  })
+
+  const job = await importQ.getJob(wkFlowId);
+  const rtn_Val = await parseJobResponse(job);
+  res.json(rtn_Val)
+  return {}
   // maybe create a util function that parses the execution response.
 });
 
 // Handle POST request to `` that receives several CSV files and returns a list of workflow IDs
-importerRouter.post('/', upload.any(), async (req, res) => {
+importerRouter.post('/', sessionChecker, upload.any(), async (req, res) => {
   const files = req.files as Express.Multer.File[] | undefined;
   console.log('Received CSV files:', files);
-  /**
-   * [
-  {
-    fieldname: 'users',
-    originalname: 'users.csv',
-    encoding: '7bit',
-    mimetype: 'text/csv',
-    destination: '/tmp/csvUploads',
-    filename: 'd19dbc63a32ca4427caf84251e2ef35f',
-    path: '/tmp/csvUploads/d19dbc63a32ca4427caf84251e2ef35f',
-    size: 468
+  console.log("===================>", req.session)
+  // TODO - move creating file to be middleware after authenticating
+  const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
+  const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
+  const user = req.session.preloadedState?.session?.username
+  const importerConfig = generateImporterSCriptConfig(accessToken, refreshToken)
+  await writeImporterScriptConfig(importerConfig)
+
+  const workflowArgs = files?.map(file => {
+    const uploadId = randomUUID()
+    const jobId = `${uploadId}_${file.fieldname}`
+    return {
+      workflowType: file.fieldname,
+      filePath: file.path,
+      workflowId: jobId
+    }
+  })
+
+  const addedJobs: BullJob[] = []
+  for (const arg of workflowArgs ?? []){
+    // TODO - make 10 configurable or at least a magic string
+    const job = await importQ.add(arg, {
+      jobId: arg.workflowId,
+      removeOnComplete: {age: 1 * 24 * 60 * 60},
+      removeOnFail: {age: 1 * 24 * 60 * 60},
+      author: user
+    })
+    addedJobs.push(job)
   }
-]
-   */
-
-  const workflowArgs = files?.map(file => ({
-    workflow_name: file.fieldname,
-    file_path: file.path
+  // TODO -dry
+  const returnData = []
+  for (const job of addedJobs) {
+    const rtn_Val = await parseJobResponse(job);
+    returnData.push(rtn_Val);
+  }
+  res.json(returnData.sort((a, b) => {
+    const diff = b.dateCreated - a.dateCreated
+    return diff === 0 ? 0 : diff > 0 ? 1 : -1
   }))
-
-  // initiate workflows here.
-  const client = await getTemporalioClient()
-  client.start("UploadWorkflowManager", { workflowId: Date.now().toString(), taskQueue: "user_upload", args: workflowArgs })
-
-  res.json({});
 });
 
 
 
 export { importerRouter }
+
+
+

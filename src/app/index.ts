@@ -40,6 +40,9 @@ import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../co
 import { parseOauthClientData, sessionLogout } from './utils';
 import { readCspOptionsConfig } from '../configs/settings';
 import { getRedisClient } from './utils/redisClient'
+import {importerRouter} from "./dollar-imports"
+import cors from 'cors';
+
 
 const opensrpAuth = new ClientOAuth2({
   accessTokenUri: EXPRESS_OPENSRP_ACCESS_TOKEN_URL,
@@ -331,6 +334,8 @@ const logout = async (req: express.Request, res: express.Response) => {
 
 // OAuth views
 const router = express.Router();
+
+router.use('/([\$])import', importerRouter)
 router.use('/oauth/opensrp', oauthLogin);
 router.use('/oauth/callback/OpenSRP', oauthCallback);
 router.use('/oauth/state', oauthState);
@@ -346,6 +351,20 @@ router.use('^/$', renderer);
 router.use(express.static(BUILD_PATH, { maxAge: '30d' }));
 // sends other routes to be handled by React Router
 router.use('*', renderer);
+
+// Define permissive CORS options
+const corsOptions = {
+  origin: '*', // Allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allow all HTTP methods
+  allowedHeaders: '*', // Allow all headers
+  exposedHeaders: '*', // Expose all headers to the browser
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+  preflightContinue: false, // Pass the CORS preflight response to the next handler
+  optionsSuccessStatus: 204 // Use status 204 for successful OPTIONS requests
+};
+
+// Use the CORS middleware with the options
+app.use(cors(corsOptions));
 
 // tell the app to use the above rules
 app.use(router);
