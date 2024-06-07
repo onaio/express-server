@@ -40,7 +40,7 @@ import { SESSION_IS_EXPIRED, TOKEN_NOT_FOUND, TOKEN_REFRESH_FAILED } from '../co
 import { parseOauthClientData, sessionLogout } from './utils';
 import { readCspOptionsConfig } from '../configs/settings';
 import { getRedisClient } from './utils/redisClient'
-import {importerRouter} from "./dollar-imports"
+// import {importerRouter} from "./dollar-imports"
 import cors from 'cors';
 
 
@@ -335,7 +335,7 @@ const logout = async (req: express.Request, res: express.Response) => {
 // OAuth views
 const router = express.Router();
 
-router.use('/([\$])import', importerRouter)
+// router.use('/([\$])import', importerRouter)
 router.use('/oauth/opensrp', oauthLogin);
 router.use('/oauth/callback/OpenSRP', oauthCallback);
 router.use('/oauth/state', oauthState);
