@@ -25,6 +25,8 @@ export const getRedisClient = () => {
 
         const redisClient = new Redis({
             ...EXPRESS_REDIS_SENTINEL_CONFIG,
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false
         });
 
         redisClient.on('connect', () => winstonLogger.info('Redis sentinel client connected!'));
