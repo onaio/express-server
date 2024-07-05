@@ -1,7 +1,6 @@
 import { spawn } from 'child_process';
-import { stdout } from 'process';
 import { UploadWorkflowTypes, dependencyGraph, importerSourceFilePath } from './utils';
-import Bull, { Job as BullJob } from 'bull'
+import { Job as BullJob } from 'bull'
 
 
 /** A job checks if preconditions are okay for it to proceed.
@@ -66,35 +65,10 @@ export class Job {
             this.preconditionPassed = true
             // pass precondition
         }
-        /** we now check that if jobs that we consider primary are in the queue and their status */
     }
 
-    // async runPrecondition() {
-    //     // Start the task with setInterval
-    //     return new Promise((resolve, reject) => {
-    //         try{
-    //             this.preconditionInterval = setInterval(async () => {try {await this.precondition()}catch(err){
-    //                 reject(err)
-    //             }}, 1000); // Run every 1 second
-    //         }catch(err){
-    //             console.log({err})
-    //             reject(err)
-    //         }
-    //     })
-    // }
-
     async asyncDoTask() {
-        // const hasRun = false
-        // try{this.runPrecondition()}catch{
-            
-        // }
         return new Promise((resolve, reject) => {
-            // try{
-            //     this.precondition()
-            // }catch(err){
-            //     reject(err)
-            // }
-            // this.runPrecondition().catch(err => reject(err))
             const doTaskIntervalId = setInterval(async () => {
                 if (this.preconditionPassed) {
                     clearInterval(doTaskIntervalId)
@@ -111,7 +85,6 @@ export class Job {
                     } catch (error) {
                         reject(error);
                     }
-                    // this.precondition()
                 }
             }, 1000)
         })
@@ -141,7 +114,8 @@ export class Job {
             });
 
             // Handle process completion
-            childProcess.on('close', (code: any) => {
+            childProcess.on('close', (code: any, ...args) => {
+                console.log({code, args})
                 if (code === 0) {
                     resolve({ stdout: stdoutData, stderr: stderrData });
                 } else {
@@ -151,6 +125,7 @@ export class Job {
 
             // Handle errors
             childProcess.on('error', (err: Error) => {
+                console.log({err})
                 reject( new Error(JSON.stringify({ stdout: stdoutData, stderr: stderrData })))
             });
         })
@@ -158,39 +133,33 @@ export class Job {
 }
 
 export function getImportScriptArgs(workflowType: string, filePath: string) {
+    console.log({workflowType, filePath})
+    const commonFlags = ["--log_level", "debug"]
     switch (workflowType) {
         case UploadWorkflowTypes.Locations:
-            return ['--csv_file', filePath, "--resource_type", "locations", "--only_response", "true"]
+            return ['--csv_file', filePath, "--resource_type", "locations", ...commonFlags]
         case UploadWorkflowTypes.Users:
-            return ['--csv_file', filePath, "--resource_type", "users", "--only_response", "true"]
-        case UploadWorkflowTypes.Careteams:
-            return ['--csv_file', filePath, "--resource_type", "careTeams", "--only_response", "true"]
+            return ['--csv_file', filePath, "--resource_type", "users", ...commonFlags]
+        case UploadWorkflowTypes.CareTeams:
+            return ['--csv_file', filePath, "--resource_type", "careTeams", ...commonFlags]
         case UploadWorkflowTypes.orgToLocationAssignment:
-            return ['--csv_file', filePath, "--assign", "organizations-locations", "--only_response", "true"]
+            return ['--csv_file', filePath, "--assign", "organizations-Locations", ...commonFlags]
         case UploadWorkflowTypes.userToOrganizationAssignment:
-            return ['--csv_file', filePath, "--assign", "users-organizations", "--only_response", "true"]
+            return ['--csv_file', filePath, "--assign", "users-organizations", ...commonFlags]
         case UploadWorkflowTypes.Organizations:
-            return ['--csv_file', filePath, "--resource_type", "organizations", "--only_response", "true"]
-        case UploadWorkflowTypes.Inventory:
-            return ['--csv_file', filePath, "--setup", "products", "--only_response", "true"]
-        case UploadWorkflowTypes.Product:
-            return ['--csv_file', filePath, "--setup", "inventories", "--only_response", "true"]
+            return ['--csv_file', filePath, "--resource_type", "organizations", ...commonFlags]
+        case UploadWorkflowTypes.Products:
+            return ['--csv_file', filePath, "--setup", "products", ...commonFlags]
+        case UploadWorkflowTypes.Inventories:
+            return ['--csv_file', filePath, "--setup", "inventories", ...commonFlags]
         default:
             return []
     }
 }
 
-
 /**
  * 
  * GENERAL TODO :
- * - date created does not reflect *
- * - workflow need to be ordered *
- * - update templates for products *
- * - update location uploader template - this should move to fhir-tooling.
- * - import endpoint works only with redis client connection
- * - endpoint is authorization restricted as well. *
- * - remove old jobs from redis *
  *  - add logging
  *  - job date started should be when the run method is called.
  * 

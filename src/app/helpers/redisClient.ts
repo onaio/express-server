@@ -5,6 +5,8 @@ import {
 } from '../../configs/envs';
 import { winstonLogger, winstonStream } from '../../configs/winston';
 
+export const redisIsConfigured = !!(EXPRESS_REDIS_SENTINEL_CONFIG || EXPRESS_REDIS_STAND_ALONE_URL)
+
 export const getRedisClient = () => {
     // use redis session store if redis is available else default to file store
     // check for and use a single redis node

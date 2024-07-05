@@ -1,17 +1,25 @@
-const Queue = require("bull")
-import {getRedisClient} from '../utils/redisClient'
-import {Job} from './job';
+// const Queue = require("bull")
+import { getRedisClient, redisIsConfigured } from '../helpers/redisClient'
+import { Job } from './job';
+import Bull from 'bull';
 
 export const importQName = "fhir-import-queue"
 
-export const importQ = Queue(importQName, {createClient: (type: 'client' | 'subscriber' | 'bclient', config?: any) => {
-  console.log({type, config})  
-  return getRedisClient()
-}})
+let importQ: Bull.Queue
 
-// Process jobs from the queue
-importQ.process(async (jobArgs: any) => {
+if (redisIsConfigured) {
+  importQ = (Bull as any)(importQName, {
+    createClient: () => {
+      return getRedisClient()
+    }
+  })
+
+  // Process jobs from the queue
+  importQ.process(async (jobArgs: any) => {
     const jobInstance = new Job(jobArgs)
     return await jobInstance.asyncDoTask()
   });
-  
+
+}
+
+export { importQ }

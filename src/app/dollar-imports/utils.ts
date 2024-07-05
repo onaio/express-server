@@ -1,36 +1,31 @@
 import path from 'path';
 import {Job as BullJob} from 'bull'
-import { stdout } from 'process';
 
-export const importerSourceFilePath = path.resolve(__dirname, "../../../fhir-tooling")
+export const importerSourceFilePath = path.resolve(__dirname, "../../../importer")
 export const templatesFolder = path.resolve(importerSourceFilePath, "csv");
 
 export enum UploadWorkflowTypes{
     Locations = "locations",
     Organizations = "organizations",
-    Inventory = "Inventory",
-    Product = "products",
-    // productImage = "productImages",
+    Inventories = "inventories",
+    Products = "products",
     Users = "users",
-    Careteams = "careteams",
+    CareTeams = "careTeams",
     orgToLocationAssignment = "orgToLocationAssignment",
     userToOrganizationAssignment = "userToOrganizationAssignment",
 }
 
-// TODO - fix this paths. also be defensive if things change underneath.
 export const resourceUploadCodeToTemplatePathLookup = {
     [UploadWorkflowTypes.Users]: path.resolve(templatesFolder, "users.csv"),
     [UploadWorkflowTypes.Organizations]: path.resolve(templatesFolder, "organizations/organizations_full.csv"),
     [UploadWorkflowTypes.Locations]: path.resolve(templatesFolder,"locations/locations_full.csv"),
-    [UploadWorkflowTypes.Careteams]: path.resolve(templatesFolder, "careteams/careteam_full.csv"),
-    [UploadWorkflowTypes.Product]: path.resolve(templatesFolder, "import/product.csv"),
-    [UploadWorkflowTypes.Inventory]: path.resolve(templatesFolder, "import/inventory.csv"),
+    [UploadWorkflowTypes.CareTeams]: path.resolve(templatesFolder, "careteams/careteam_full.csv"),
+    [UploadWorkflowTypes.Products]: path.resolve(templatesFolder, "import/product.csv"),
+    [UploadWorkflowTypes.Inventories]: path.resolve(templatesFolder, "import/inventory.csv"),
     [UploadWorkflowTypes.orgToLocationAssignment]: path.resolve(templatesFolder, "organizations/organizations_locations.csv"),
     [UploadWorkflowTypes.userToOrganizationAssignment]: path.resolve(templatesFolder, "practitioners/users_organizations.csv"),
-    // [UploadWorkflowTypes.productImage]: path.resolve(templatesFolder, "organizations/organizations_locations.csv"),
 }
 
-// 
 /** function given a resource upload code returns the template name */
 export function getTemplateFilePath(resourceUploadCode: UploadWorkflowTypes){
   return resourceUploadCodeToTemplatePathLookup[resourceUploadCode]
@@ -51,7 +46,7 @@ export function isString(value: any): value is string {
 
 export async function parseJobResponse(job: BullJob){
     const status = await job.getState();
-    const jobData  =job.data
+    const jobData  = job.data
     const {workflowType, filePath, author} = jobData
     const filename = filePath ? path.posix.basename(filePath): ""
 
@@ -86,6 +81,5 @@ type DependencyGraph = {
 export const dependencyGraph: DependencyGraph = {
     [UploadWorkflowTypes.orgToLocationAssignment]: [UploadWorkflowTypes.Organizations, UploadWorkflowTypes.Locations],
     [UploadWorkflowTypes.userToOrganizationAssignment]: [UploadWorkflowTypes.Users, UploadWorkflowTypes.Organizations],
-    [UploadWorkflowTypes.Inventory]: [UploadWorkflowTypes.Product],
-
+    [UploadWorkflowTypes.Inventories]: [UploadWorkflowTypes.Products],
 }
