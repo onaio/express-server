@@ -31,12 +31,12 @@ const upload = multer({ storage: storage });
 
 // Middleware function to check for session
 const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
-  if(false){
+  // if(false){
 
-  }
-  // if (!req.session.preloadedState) {
-  //   return res.json({ error: 'Not authorized' });
   // }
+  if (!req.session.preloadedState) {
+    return res.json({ error: 'Not authorized' });
+  }
   else{
     next()
   }

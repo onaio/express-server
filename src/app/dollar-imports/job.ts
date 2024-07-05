@@ -134,7 +134,7 @@ export class Job {
 
 export function getImportScriptArgs(workflowType: string, filePath: string) {
     console.log({workflowType, filePath})
-    const commonFlags = ["--log_level", "debug"]
+    const commonFlags = ["--log_level", "info"]
     switch (workflowType) {
         case UploadWorkflowTypes.Locations:
             return ['--csv_file', filePath, "--resource_type", "locations", ...commonFlags]
