@@ -82,3 +82,5 @@ export const EXPRESS_RESPONSE_HEADERS = JSON.parse(process.env.EXPRESS_RESPONSE_
 export const EXPRESS_OPENSRP_SCOPES = (process.env.EXPRESS_OPENSRP_SCOPES || 'openid,profile').split(',');
 
 export const EXPRESS_OPENSRP_SERVER_URL= process.env.EXPRESS_OPENSRP_SERVER_URL
+
+export const EXPRESS_TEMP_CSV_FILE_STORAGE = process.env.EXPRESS_TEMP_CSV_FILE_STORAGE || "/tmp/csvUploads"
