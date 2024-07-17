@@ -29,6 +29,7 @@ module.exports = {
     'prettier/prettier': 2,
     'consistent-return': 0,
     'max-classes-per-file': 0,
+    'import/prefer-default-export': 0,
     '@typescript-eslint/naming-convention': [
       'error',
       // variableLike - matches the same as variable, function and parameter
@@ -36,6 +37,7 @@ module.exports = {
         selector: 'variableLike',
         format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
         leadingUnderscore: 'allow',
+        trailingUnderscore: 'allow'
       },
       // typeLike - matches the same as class, interface, typeAlias, enum, typeParameter
       {
