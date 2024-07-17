@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { importQ } from './queue';
+import { getImportQueue } from './queue';
 import { generateImporterSCriptConfig, writeImporterScriptConfig } from './importerConfigWriter';
-import { redisClient } from '../helpers/redisClient';
+import { getRedisClient } from '../helpers/redisClient';
 
 // Ensures that requests are authenticated
 export const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
-  // if(false){
-  // }
-  console.log('Invoked');
   if (!req.session.preloadedState) {
     return res.json({ error: 'Not authorized' });
   }
@@ -17,8 +14,9 @@ export const sessionChecker = (req: Request, res: Response, next: NextFunction) 
 
 /** Checks that redis is enabled for the data import */
 export const redisRequiredMiddleWare = (_: Request, res: Response, next: NextFunction) => {
+  const redisClient = getRedisClient();
+  const importQ = getImportQueue();
   if (!redisClient || !importQ) {
-    console.log('++++++++++++++++++++++', !redisClient, !importQ);
     return res.json({ error: 'No redis connection found. Redis is required to enable this feature.' });
   }
   next();
