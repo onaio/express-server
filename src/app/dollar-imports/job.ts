@@ -154,10 +154,3 @@ export class Job {
     });
   }
 }
-
-/**
- *
- * GENERAL TODO :
- *  - add logging
- *  - job date started should be when the run method is called.
- */
