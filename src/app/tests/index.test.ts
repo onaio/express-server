@@ -29,6 +29,7 @@ const panic = (err: Error, done: jest.DoneCallback): void => {
 };
 
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
+jest.mock('bull');
 jest.mock('../../configs/envs');
 jest.mock('node-fetch');
 jest.mock('client-oauth2', () => {
