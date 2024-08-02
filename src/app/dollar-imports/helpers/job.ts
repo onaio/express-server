@@ -14,7 +14,15 @@ export function getImportScriptArgs(jobData: JobData) {
   const commonFlags = ['--log_level', 'info'];
   switch (workflowType) {
     case UploadWorkflowTypes.Locations:
-      return ['--csv_file', filePath, '--resource_type', 'locations', ...commonFlags];
+      return [
+        '--csv_file',
+        filePath,
+        '--resource_type',
+        'locations',
+        '--location_type_coding_system',
+        'http://smartregister.org/CodeSystem/eusm-service-point-type',
+        ...commonFlags,
+      ];
     case UploadWorkflowTypes.Users:
       return ['--csv_file', filePath, '--resource_type', 'users', ...commonFlags];
     case UploadWorkflowTypes.CareTeams:
