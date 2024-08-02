@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { getImportQueue } from './queue';
-import { generateImporterSCriptConfig, writeImporterScriptConfig } from './importerConfigWriter';
-import { getRedisClient } from '../helpers/redisClient';
+import { getRedisClient } from '../../helpers/redisClient';
 
 // Ensures that requests are authenticated
 export const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
@@ -22,11 +21,7 @@ export const redisRequiredMiddleWare = (_: Request, res: Response, next: NextFun
   next();
 };
 
-/** A middleware that writes the bulk upload importer config. */
-export const writeImporterConfigMiddleware = async (req: Request, __: Response, next: NextFunction) => {
-  const accessToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token;
-  const refreshToken = req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token;
-  const importerConfig = generateImporterSCriptConfig(accessToken, refreshToken);
-  await writeImporterScriptConfig(importerConfig);
-  next();
+export const importRouterErrorhandler = (err: Error, req: Request, res: Response, _: NextFunction) => {
+  // log error
+  res.status(500).send(err.message);
 };

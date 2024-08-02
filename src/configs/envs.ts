@@ -84,3 +84,5 @@ export const EXPRESS_OPENSRP_SCOPES = (process.env.EXPRESS_OPENSRP_SCOPES || 'op
 export const { EXPRESS_OPENSRP_SERVER_URL } = process.env;
 
 export const EXPRESS_TEMP_CSV_FILE_STORAGE = process.env.EXPRESS_TEMP_CSV_FILE_STORAGE || '/tmp/csvUploads';
+
+export const EXPRESS_PYTHON_INTERPRETER_PATH = process.env.EXPRESS_PYTHON_INTERPRETER_PATH || 'python3';

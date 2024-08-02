@@ -1,7 +1,7 @@
 import path from 'path';
 import { Job as BullJob } from 'bull';
 
-export const importerSourceFilePath = path.resolve(__dirname, '../../../importer');
+export const importerSourceFilePath = path.resolve(__dirname, '../../../../importer');
 export const templatesFolder = path.resolve(importerSourceFilePath, 'csv');
 
 export enum UploadWorkflowTypes {
@@ -13,6 +13,17 @@ export enum UploadWorkflowTypes {
   CareTeams = 'careTeams',
   orgToLocationAssignment = 'orgToLocationAssignment',
   userToOrganizationAssignment = 'userToOrganizationAssignment',
+}
+
+export interface JobData {
+  workflowType: UploadWorkflowTypes;
+  filePath: string;
+  workflowId: string;
+  author: string;
+  accessToken: string;
+  refreshToken: string;
+  productListId?: string;
+  inventoryListId?: string;
 }
 
 export const resourceUploadCodeToTemplatePathLookup = {
@@ -88,3 +99,18 @@ export const dependencyGraph: DependencyGraph = {
   [UploadWorkflowTypes.userToOrganizationAssignment]: [UploadWorkflowTypes.Users, UploadWorkflowTypes.Organizations],
   [UploadWorkflowTypes.Inventories]: [UploadWorkflowTypes.Products],
 };
+
+/** validates workflow arguments
+ *
+ * @param args - args for initiating a bull job.
+ */
+export function validateWorkflowArgs(args: JobData[]) {
+  for (const arg of args) {
+    if (arg.workflowType === UploadWorkflowTypes.Products && !arg.productListId) {
+      throw new Error('Product list id for the product upload workflow was not provided');
+    }
+    if (arg.workflowType === UploadWorkflowTypes.Inventories && !arg.inventoryListId) {
+      throw new Error('inventory list id for the inventory upload workflow was not provided');
+    }
+  }
+}

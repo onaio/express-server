@@ -1,8 +1,16 @@
 import { spawn } from 'child_process';
 import { Job as BullJob } from 'bull';
-import { UploadWorkflowTypes, dependencyGraph, importerSourceFilePath } from './utils';
+import { JobData, UploadWorkflowTypes, dependencyGraph, importerSourceFilePath } from './utils';
+import {
+  EXPRESS_OPENSRP_CLIENT_ID,
+  EXPRESS_OPENSRP_SERVER_URL,
+  EXPRESS_OPENSRP_CLIENT_SECRET,
+  EXPRESS_PYTHON_INTERPRETER_PATH,
+} from '../../../configs/envs';
+import { realm, keycloakBaseUrl } from '../../helpers/utils';
 
-export function getImportScriptArgs(workflowType: string, filePath: string) {
+export function getImportScriptArgs(jobData: JobData) {
+  const { workflowType, filePath, productListId, inventoryListId } = jobData;
   const commonFlags = ['--log_level', 'info'];
   switch (workflowType) {
     case UploadWorkflowTypes.Locations:
@@ -17,10 +25,19 @@ export function getImportScriptArgs(workflowType: string, filePath: string) {
       return ['--csv_file', filePath, '--assign', 'users-organizations', ...commonFlags];
     case UploadWorkflowTypes.Organizations:
       return ['--csv_file', filePath, '--resource_type', 'organizations', ...commonFlags];
+    // invariant: at this point the product list and inventory list id  are defined
     case UploadWorkflowTypes.Products:
-      return ['--csv_file', filePath, '--setup', 'products', ...commonFlags];
+      return ['--csv_file', filePath, '--setup', 'products', '--list_resource_id', `${productListId}`, ...commonFlags];
     case UploadWorkflowTypes.Inventories:
-      return ['--csv_file', filePath, '--setup', 'inventories', ...commonFlags];
+      return [
+        '--csv_file',
+        filePath,
+        '--setup',
+        'inventories',
+        '--list_resource_id',
+        `${inventoryListId}`,
+        ...commonFlags,
+      ];
     default:
       return [];
   }
@@ -45,17 +62,20 @@ export class Job {
 
   job: BullJob;
 
+  jobData: JobData;
+
   preconditionPassed = false;
 
   dateStarted: number;
 
-  constructor(job: BullJob) {
-    const options = job.data;
+  constructor(job: BullJob<JobData>) {
+    const jobData = job.data;
+    this.jobData = jobData;
     this.job = job;
-    this.workflowType = options.workflowType;
-    this.csv_file = options.filePath;
+    this.workflowType = jobData.workflowType;
+    this.csv_file = jobData.filePath;
     this.startDate = Date.now();
-    this.workflowId = options.workflowId;
+    this.workflowId = jobData.workflowId;
   }
 
   async precondition() {
@@ -116,14 +136,29 @@ export class Job {
   }
 
   run() {
-    const command = 'python3';
-    const scriptArgs = ['main.py', ...getImportScriptArgs(this.workflowType, this.csv_file)];
+    const command = EXPRESS_PYTHON_INTERPRETER_PATH;
+    const scriptArgs = ['main.py', ...getImportScriptArgs(this.jobData)];
 
     return new Promise((resolve, reject) => {
       // Append the file path to the arguments list
 
+      const cwdEnv = {
+        client_id: EXPRESS_OPENSRP_CLIENT_ID,
+        client_secret: EXPRESS_OPENSRP_CLIENT_SECRET,
+        fhir_base_url: EXPRESS_OPENSRP_SERVER_URL,
+        keycloak_url: keycloakBaseUrl,
+        realm,
+        access_token: this.jobData.accessToken,
+        refresh_token: this.jobData.refreshToken,
+        // OAUTHLIB_INSECURE_TRANSPORT:"1"
+      };
+
       // Spawn the child process
-      const childProcess = spawn(command, scriptArgs, { cwd: importerSourceFilePath });
+      const childProcess = spawn(command, scriptArgs, {
+        cwd: importerSourceFilePath,
+        env: cwdEnv,
+        shell: true,
+      });
 
       let stdoutData = '';
       let stderrData = '';
@@ -154,3 +189,8 @@ export class Job {
     });
   }
 }
+
+/**
+ *
+ * some errors at the invocation level are not reported e.g. python failing to be found.
+ */
