@@ -1,5 +1,5 @@
 import type Bull from 'bull';
-import { getRedisClient, redisIsConfigured } from '../helpers/redisClient';
+import { getRedisClient, redisIsConfigured } from '../../helpers/redisClient';
 import { Job } from './job';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires

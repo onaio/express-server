@@ -6,9 +6,16 @@ import { mkdir } from 'fs/promises';
 import AdmZip from 'adm-zip';
 import { randomUUID } from 'crypto';
 import { Job as BullJob } from 'bull';
-import { getImportQueue, BullQ } from './queue';
-import { getAllTemplateFilePaths, getTemplateFilePath, parseJobResponse, UploadWorkflowTypes } from './utils';
-import { redisRequiredMiddleWare, sessionChecker, writeImporterConfigMiddleware } from './middleware';
+import { getImportQueue, BullQ } from './helpers/queue';
+import {
+  getAllTemplateFilePaths,
+  getTemplateFilePath,
+  JobData,
+  parseJobResponse,
+  UploadWorkflowTypes,
+  validateWorkflowArgs,
+} from './helpers/utils';
+import { importRouterErrorhandler, redisRequiredMiddleWare, sessionChecker } from './helpers/middleware';
 import { A_DAY } from '../../constants';
 import { EXPRESS_TEMP_CSV_FILE_STORAGE } from '../../configs/envs';
 
@@ -89,23 +96,36 @@ importerRouter.get('/:slug', sessionChecker, async (req, res) => {
   res.status(401).send({ message: `Workflow with id ${wkFlowId} was not found` });
 });
 
-importerRouter.post('/', sessionChecker, writeImporterConfigMiddleware, upload.any(), async (req, res) => {
+importerRouter.post('/', sessionChecker, upload.any(), async (req, res, next) => {
   const files = req.files as Express.Multer.File[] | undefined;
   const user = req.session.preloadedState?.session?.user?.username;
 
+  const { productListId, inventoryListId } = req.query;
+
   const uploadId = randomUUID();
-  const workflowArgs = files?.map((file) => {
-    const jobId = `${uploadId}_${file.fieldname}`;
-    return {
-      workflowType: file.fieldname,
-      filePath: file.path,
-      workflowId: jobId,
-      author: user,
-    };
-  });
+  const workflowArgs =
+    files?.map((file) => {
+      const jobId = `${uploadId}_${file.fieldname}`;
+      return {
+        workflowType: file.fieldname,
+        filePath: file.path,
+        workflowId: jobId,
+        author: user,
+        accessToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token,
+        refreshToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token,
+        productListId,
+        inventoryListId,
+      } as JobData;
+    }) ?? [];
+
+  try {
+    validateWorkflowArgs(workflowArgs);
+  } catch (err) {
+    next(err);
+  }
 
   const addedJobs: BullJob[] = await Promise.all(
-    (workflowArgs ?? []).map((arg) =>
+    workflowArgs.map((arg) =>
       importQ.add(arg, {
         jobId: arg.workflowId,
         removeOnComplete: { age: A_DAY },
@@ -123,5 +143,7 @@ importerRouter.post('/', sessionChecker, writeImporterConfigMiddleware, upload.a
     }),
   );
 });
+
+importerRouter.use(importRouterErrorhandler);
 
 export { importerRouter };

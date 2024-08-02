@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import path from 'path';
-import { getImportScriptArgs } from '../job';
-import { UploadWorkflowTypes } from '../utils';
+import { getImportScriptArgs } from '../helpers/job';
+import { UploadWorkflowTypes } from '../helpers/utils';
 
 const sampleCsv = path.resolve(__dirname, 'fixtures/sample.csv');
 
