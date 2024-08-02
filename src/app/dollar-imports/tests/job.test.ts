@@ -8,20 +8,51 @@ const sampleCsv = path.resolve(__dirname, 'fixtures/sample.csv');
 
 test('generates correct script args for the different workflows', () => {
   const common = ['--log_level', 'info'];
-  let result = getImportScriptArgs(UploadWorkflowTypes.Locations, sampleCsv);
+  const commonWorkflowArgs = {
+    workflowType: UploadWorkflowTypes.Locations,
+    filePath: sampleCsv,
+    productListId: 'productId',
+    inventoryListId: 'inventoryId',
+    workflowId: 'id',
+    author: 'JK Rowling',
+    accessToken: 'at',
+    refreshToken: 'rt',
+  };
+  let result = getImportScriptArgs(commonWorkflowArgs);
   expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'locations', ...common]);
-  result = getImportScriptArgs(UploadWorkflowTypes.Users, sampleCsv);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Users });
   expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'users', ...common]);
-  result = getImportScriptArgs(UploadWorkflowTypes.CareTeams, sampleCsv);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.CareTeams });
   expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'careTeams', '--log_level', 'info']);
-  result = getImportScriptArgs(UploadWorkflowTypes.orgToLocationAssignment, sampleCsv);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.orgToLocationAssignment });
   expect(result).toEqual(['--csv_file', sampleCsv, '--assign', 'organizations-Locations', '--log_level', 'info']);
-  result = getImportScriptArgs(UploadWorkflowTypes.userToOrganizationAssignment, sampleCsv);
+  result = getImportScriptArgs({
+    ...commonWorkflowArgs,
+    workflowType: UploadWorkflowTypes.userToOrganizationAssignment,
+  });
   expect(result).toEqual(['--csv_file', sampleCsv, '--assign', 'users-organizations', '--log_level', 'info']);
-  result = getImportScriptArgs(UploadWorkflowTypes.Organizations, sampleCsv);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Organizations });
   expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'organizations', '--log_level', 'info']);
-  result = getImportScriptArgs(UploadWorkflowTypes.Products, sampleCsv);
-  expect(result).toEqual(['--csv_file', sampleCsv, '--setup', 'products', '--log_level', 'info']);
-  result = getImportScriptArgs(UploadWorkflowTypes.Inventories, sampleCsv);
-  expect(result).toEqual(['--csv_file', sampleCsv, '--setup', 'inventories', '--log_level', 'info']);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Products });
+  expect(result).toEqual([
+    '--csv_file',
+    sampleCsv,
+    '--setup',
+    'products',
+    '--list_resource_id',
+    'productId',
+    '--log_level',
+    'info',
+  ]);
+  result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Inventories });
+  expect(result).toEqual([
+    '--csv_file',
+    sampleCsv,
+    '--setup',
+    'inventories',
+    '--list_resource_id',
+    'inventoryId',
+    '--log_level',
+    'info',
+  ]);
 });
