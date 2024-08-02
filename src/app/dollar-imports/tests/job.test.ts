@@ -19,7 +19,15 @@ test('generates correct script args for the different workflows', () => {
     refreshToken: 'rt',
   };
   let result = getImportScriptArgs(commonWorkflowArgs);
-  expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'locations', ...common]);
+  expect(result).toEqual([
+    '--csv_file',
+    sampleCsv,
+    '--resource_type',
+    'locations',
+    '--location_type_coding_system',
+    'http://smartregister.org/CodeSystem/eusm-service-point-type',
+    ...common,
+  ]);
   result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Users });
   expect(result).toEqual(['--csv_file', sampleCsv, '--resource_type', 'users', ...common]);
   result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.CareTeams });
