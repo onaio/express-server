@@ -4,7 +4,7 @@ import path from 'path';
 import { getImportScriptArgs } from '../helpers/job';
 import { UploadWorkflowTypes } from '../helpers/utils';
 
-const sampleCsv = path.resolve(__dirname, 'fixtures/sample.csv');
+const sampleCsv = `"=${path.resolve(__dirname, 'fixtures/sample.csv')}"`;
 
 test('generates correct script args for the different workflows', () => {
   const common = ['--log_level', 'info'];
