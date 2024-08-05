@@ -10,7 +10,8 @@ import {
 import { realm, keycloakBaseUrl } from '../../helpers/utils';
 
 export function getImportScriptArgs(jobData: JobData) {
-  const { workflowType, filePath, productListId, inventoryListId } = jobData;
+  const { workflowType, filePath: rawFilePath, productListId, inventoryListId } = jobData;
+  const filePath = `"${rawFilePath}"`;
   const commonFlags = ['--log_level', 'info'];
   switch (workflowType) {
     case UploadWorkflowTypes.Locations:
