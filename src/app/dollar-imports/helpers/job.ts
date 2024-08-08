@@ -8,6 +8,7 @@ import {
   EXPRESS_PYTHON_INTERPRETER_PATH,
 } from '../../../configs/envs';
 import { realm, keycloakBaseUrl } from '../../helpers/utils';
+import { winstonLogger } from '../../../configs/winston';
 
 export function getImportScriptArgs(jobData: JobData) {
   const { workflowType, filePath: rawFilePath, productListId, inventoryListId } = jobData;
@@ -88,6 +89,7 @@ export class Job {
   }
 
   async precondition() {
+    winstonLogger.info(`job ${this.jobData.workflowId}: Starting precondition check`);
     const allJobs = await this.job.queue.getJobs([]);
     // find jobs that are related with this upload.
     const thisJobUploadId = this.workflowId.split('_')[0];
@@ -110,7 +112,9 @@ export class Job {
     const failedStates = preceedingJobsStatus.filter((status) => status.jobState === 'failed');
 
     if (failedStates.length) {
-      throw new Error(`Preceeding job of type ${failedStates.map((state) => state.workflowType).join()} failed`);
+      const failedMessage = `Preceeding job of type ${failedStates.map((state) => state.workflowType).join()} failed`;
+      winstonLogger.error(`job ${this.jobData.workflowId}: ${failedMessage}`);
+      throw new Error(failedMessage);
     }
 
     const incompleteJobs = preceedingJobsStatus.filter((status) => status.jobState !== 'completed');
@@ -118,14 +122,17 @@ export class Job {
       this.preconditionPassed = false;
       // keep running loop
     } else {
+      winstonLogger.info(`job ${this.jobData.workflowId}: precondition passed`);
       this.preconditionPassed = true;
       // pass precondition
     }
   }
 
   async asyncDoTask() {
+    winstonLogger.debug(`job ${this.jobData.workflowId}: task start instruction`);
     return new Promise((resolve, reject) => {
       const doTaskIntervalId = setInterval(async () => {
+        winstonLogger.debug(`job ${this.jobData.workflowId}: invoking precondition check`);
         if (this.preconditionPassed) {
           clearInterval(doTaskIntervalId);
           try {
@@ -137,6 +144,8 @@ export class Job {
           try {
             await this.precondition();
           } catch (error) {
+            winstonLogger.debug(`job ${this.jobData.workflowId}: precondition failed with ${error}`);
+            clearInterval(doTaskIntervalId);
             reject(error);
           }
         }
@@ -159,8 +168,10 @@ export class Job {
         realm,
         access_token: this.jobData.accessToken,
         refresh_token: this.jobData.refreshToken,
-        // OAUTHLIB_INSECURE_TRANSPORT:"1"
+        // OAUTHLIB_INSECURE_TRANSPORT: '1',
       };
+
+      winstonLogger.debug(`job ${this.jobData.workflowId}: Importer script started with: ${[command, scriptArgs]}`);
 
       // Spawn the child process
       const childProcess = spawn(command, scriptArgs, {
@@ -185,14 +196,18 @@ export class Job {
       // Handle process completion
       childProcess.on('close', (code: number) => {
         if (code === 0) {
+          winstonLogger.info(`job ${this.jobData.workflowId}: Importer script ran to completion`);
           resolve({ stdout: stdoutData, stderr: stderrData });
         } else {
-          reject(new Error(JSON.stringify({ stdout: stdoutData, stderr: stderrData })));
+          const errorResponse = JSON.stringify({ stdout: stdoutData, stderr: stderrData });
+          winstonLogger.error(`job ${this.jobData.workflowId}: Importer script failed with error: ${errorResponse} `);
+          reject(new Error(errorResponse));
         }
       });
 
       // Handle errors
       childProcess.on('error', (_: Error) => {
+        winstonLogger.error(`job ${this.jobData.workflowId}: Child process failed with ${_}`);
         reject(new Error(JSON.stringify({ stdout: stdoutData, stderr: stderrData })));
       });
     });

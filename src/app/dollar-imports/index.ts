@@ -12,6 +12,7 @@ import {
   getTemplateFilePath,
   JobData,
   parseJobResponse,
+  StrPartsSep,
   UploadWorkflowTypes,
   validateWorkflowArgs,
 } from './helpers/utils';
@@ -24,7 +25,7 @@ const importQ = getImportQueue() as BullQ;
 
 const storage = multer.diskStorage({
   async destination(_, __, cb) {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const uniqueSuffix = `${Date.now()}`;
     const folderPath = `${EXPRESS_TEMP_CSV_FILE_STORAGE}/${uniqueSuffix}`;
     if (!fs.existsSync(folderPath)) {
       await mkdir(folderPath, { recursive: true });
@@ -32,7 +33,8 @@ const storage = multer.diskStorage({
     cb(null, folderPath);
   },
   filename(req, file, cb) {
-    cb(null, file.originalname);
+    const newFileName = `${Math.round(Math.random() * 1e9)}${StrPartsSep}${file.originalname}`;
+    cb(null, newFileName);
   },
 });
 

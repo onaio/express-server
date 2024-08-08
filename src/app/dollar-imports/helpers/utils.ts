@@ -3,6 +3,7 @@ import { Job as BullJob } from 'bull';
 
 export const importerSourceFilePath = path.resolve(__dirname, '../../../../importer');
 export const templatesFolder = path.resolve(importerSourceFilePath, 'csv');
+export const StrPartsSep = '-';
 
 export enum UploadWorkflowTypes {
   Locations = 'locations',
@@ -64,7 +65,9 @@ export async function parseJobResponse(job: BullJob) {
   const status = await job.getState();
   const jobData = job.data;
   const { workflowType, filePath, author } = jobData;
-  const filename = filePath ? path.posix.basename(filePath) : '';
+  const internalFilename = filePath ? path.posix.basename(filePath) : '';
+  const splitFileName = internalFilename.split(StrPartsSep);
+  const normalizedFilename = splitFileName[splitFileName.length - 1];
 
   let statusReason;
   if (status === 'failed') {
@@ -85,7 +88,8 @@ export async function parseJobResponse(job: BullJob) {
     dateStarted: job.processedOn,
     dateEnded: job.finishedOn,
     statusReason,
-    filename,
+    filename: normalizedFilename,
+    internalFilename,
     author,
   };
 }
