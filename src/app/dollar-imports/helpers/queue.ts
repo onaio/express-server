@@ -23,7 +23,7 @@ export function getImportQueue() {
 
     // Process jobs from the queue
     importQ
-      ?.process((jobArgs: Bull.Job) => {
+      ?.process(5, (jobArgs: Bull.Job) => {
         const jobInstance = new Job(jobArgs);
         return jobInstance.asyncDoTask().catch((err) => {
           throw err;
