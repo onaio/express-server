@@ -129,10 +129,10 @@ export class Job {
   }
 
   async asyncDoTask() {
-    winstonLogger.debug(`job ${this.jobData.workflowId}: task start instruction`);
+    winstonLogger.info(`job ${this.jobData.workflowId}: task start instruction`);
     return new Promise((resolve, reject) => {
       const doTaskIntervalId = setInterval(async () => {
-        winstonLogger.debug(`job ${this.jobData.workflowId}: invoking precondition check`);
+        winstonLogger.info(`job ${this.jobData.workflowId}: invoking precondition check`);
         if (this.preconditionPassed) {
           clearInterval(doTaskIntervalId);
           try {
@@ -144,7 +144,7 @@ export class Job {
           try {
             await this.precondition();
           } catch (error) {
-            winstonLogger.debug(`job ${this.jobData.workflowId}: precondition failed with ${error}`);
+            winstonLogger.info(`job ${this.jobData.workflowId}: precondition failed with ${error}`);
             clearInterval(doTaskIntervalId);
             reject(error);
           }
@@ -171,7 +171,7 @@ export class Job {
         // OAUTHLIB_INSECURE_TRANSPORT: '1',
       };
 
-      winstonLogger.debug(`job ${this.jobData.workflowId}: Importer script started with: ${[command, scriptArgs]}`);
+      winstonLogger.info(`job ${this.jobData.workflowId}: Importer script started with: ${[command, scriptArgs]}`);
 
       // Spawn the child process
       const childProcess = spawn(command, scriptArgs, {
