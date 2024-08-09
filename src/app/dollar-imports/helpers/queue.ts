@@ -1,5 +1,5 @@
 import type Bull from 'bull';
-import { getRedisClient, redisIsConfigured } from '../helpers/redisClient';
+import { getRedisClient, redisIsConfigured } from '../../helpers/redisClient';
 import { Job } from './job';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
@@ -23,7 +23,7 @@ export function getImportQueue() {
 
     // Process jobs from the queue
     importQ
-      ?.process((jobArgs: Bull.Job) => {
+      ?.process(5, (jobArgs: Bull.Job) => {
         const jobInstance = new Job(jobArgs);
         return jobInstance.asyncDoTask().catch((err) => {
           throw err;
