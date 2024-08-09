@@ -213,8 +213,3 @@ export class Job {
     });
   }
 }
-
-/**
- *
- * some errors at the invocation level are not reported e.g. python failing to be found.
- */
