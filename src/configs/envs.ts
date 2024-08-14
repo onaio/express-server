@@ -86,3 +86,5 @@ export const { EXPRESS_OPENSRP_SERVER_URL } = process.env;
 export const EXPRESS_TEMP_CSV_FILE_STORAGE = process.env.EXPRESS_TEMP_CSV_FILE_STORAGE || '/tmp/csvUploads';
 
 export const EXPRESS_PYTHON_INTERPRETER_PATH = process.env.EXPRESS_PYTHON_INTERPRETER_PATH || 'python';
+
+export const EXPRESS_BULK_UPLOAD_REDIS_QUEUE = process.env.EXPRESS_BULK_UPLOAD_REDIS_QUEUE || 'fhir-import-queue';
