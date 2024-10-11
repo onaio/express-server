@@ -124,6 +124,7 @@ importerRouter.post('/', sessionChecker, upload.any(), async (req, res, next) =>
     validateWorkflowArgs(workflowArgs);
   } catch (err) {
     next(err);
+    return
   }
 
   const addedJobs: BullJob[] = await Promise.all(
