@@ -99,8 +99,8 @@ const sess = {
     secure: false,
   },
   name: sessionName,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   secret: EXPRESS_SESSION_SECRET || 'hunter2',
   store: sessionStore,
 };

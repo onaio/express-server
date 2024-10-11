@@ -1,3 +1,5 @@
+import { EXPRESS_OPENSRP_ACCESS_TOKEN_URL } from '../../configs/envs';
+
 export function parseKeycloakUrl(keycloakUrl: string) {
   // Parse the URL
   const parsedUrl = new URL(keycloakUrl);
@@ -18,3 +20,5 @@ export function parseKeycloakUrl(keycloakUrl: string) {
   }
   return { realm, keycloakBaseUrl };
 }
+
+export const { realm, keycloakBaseUrl } = parseKeycloakUrl(EXPRESS_OPENSRP_ACCESS_TOKEN_URL);
