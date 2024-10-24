@@ -7,7 +7,7 @@ import { winstonLogger } from '../../../configs/winston';
 export const sessionChecker = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.preloadedState) {
     winstonLogger.error('No session found. User not authorized');
-    return res.json({ error: 'Not authorized' });
+    return res.status(401).json({ error: 'Not authorized' });
   }
 
   next();
@@ -19,7 +19,7 @@ export const redisRequiredMiddleWare = (_: Request, res: Response, next: NextFun
   const importQ = getImportQueue();
   if (!redisClient || !importQ) {
     winstonLogger.info('No redis connection found.');
-    return res.json({ error: 'No redis connection found. Redis is required to enable this feature.' });
+    return res.status(500).json({ error: 'No redis connection found. Redis is required to enable this feature.' });
   }
   next();
 };

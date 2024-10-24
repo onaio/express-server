@@ -40,6 +40,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+importerRouter.use(sessionChecker)
 importerRouter.use(redisRequiredMiddleWare);
 
 importerRouter.get('/', sessionChecker, async (req, res) => {
@@ -54,7 +55,7 @@ importerRouter.get('/', sessionChecker, async (req, res) => {
   );
 });
 
-importerRouter.get('/templates', sessionChecker, async (req, res) => {
+importerRouter.get('/templates', async (req, res) => {
   const uploadCodeTemplate = req.query.resourceTemplate;
 
   if (typeof uploadCodeTemplate === 'string') {
@@ -86,7 +87,7 @@ importerRouter.get('/templates', sessionChecker, async (req, res) => {
   }
 });
 
-importerRouter.get('/:slug', sessionChecker, async (req, res) => {
+importerRouter.get('/:slug', async (req, res) => {
   const wkFlowId = req.params.slug;
 
   const job = await importQ.getJob(wkFlowId);
@@ -95,10 +96,10 @@ importerRouter.get('/:slug', sessionChecker, async (req, res) => {
     res.json(rtnVal);
     return;
   }
-  res.status(401).send({ message: `Workflow with id ${wkFlowId} was not found` });
+  res.status(404).send({ message: `Workflow with id ${wkFlowId} was not found` });
 });
 
-importerRouter.post('/', sessionChecker, upload.any(), async (req, res, next) => {
+importerRouter.post('/', upload.any(), async (req, res, next) => {
   const files = req.files as Express.Multer.File[] | undefined;
   const user = req.session.preloadedState?.session?.user?.username;
 
