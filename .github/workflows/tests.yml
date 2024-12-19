@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '22'
       
-      - name: Setup Node.js
+      - name: Enable corepack for node package managers
         run: corepack enable
 
       - name: Install dependencies
