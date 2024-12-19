@@ -13,32 +13,30 @@ jobs:
     runs-on: ubuntu-lts
 
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      
+      - name: Setup Node.js
+        run: corepack enable
 
-      # Install dependencies
       - name: Install dependencies
         run: yarn install
 
-      # Run linter
       - name: Run linter
         run: yarn lint
 
-      # Run tests
       - name: Run tests
         env:
           CI: true
         run: yarn test:coverage --runInBand --forceExit --verbose
       
       - name: Run coveralls
-        command: cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
+        run: cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
   
       - name: Check formatting
         run: yarn lint
