@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import path from 'path';
 import { getImportScriptArgs } from '../helpers/job';
 import { UploadWorkflowTypes } from '../helpers/utils';
-import path from 'path'
 
 const sampleCsv = `${path.resolve(__dirname, 'fixtures/sample.csv')}`;
 
@@ -33,7 +33,14 @@ test('generates correct script args for the different workflows', () => {
   result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.CareTeams });
   expect(result).toEqual(['--csv_file', `"${sampleCsv}"`, '--resource_type', 'careTeams', '--log_level', 'info']);
   result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.orgToLocationAssignment });
-  expect(result).toEqual(['--csv_file', `"${sampleCsv}"`, '--assign', 'organizations-Locations', '--log_level', 'info']);
+  expect(result).toEqual([
+    '--csv_file',
+    `"${sampleCsv}"`,
+    '--assign',
+    'organizations-Locations',
+    '--log_level',
+    'info',
+  ]);
   result = getImportScriptArgs({
     ...commonWorkflowArgs,
     workflowType: UploadWorkflowTypes.userToOrganizationAssignment,

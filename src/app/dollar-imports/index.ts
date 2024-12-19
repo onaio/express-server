@@ -40,7 +40,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-importerRouter.use(sessionChecker)
+importerRouter.use(sessionChecker);
 importerRouter.use(redisRequiredMiddleWare);
 
 importerRouter.get('/', sessionChecker, async (req, res) => {
@@ -125,7 +125,7 @@ importerRouter.post('/', upload.any(), async (req, res, next) => {
     validateWorkflowArgs(workflowArgs);
   } catch (err) {
     next(err);
-    return
+    return;
   }
 
   const addedJobs: BullJob[] = await Promise.all(
