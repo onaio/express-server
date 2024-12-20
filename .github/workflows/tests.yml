@@ -1,0 +1,46 @@
+name: Code checker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  commit-checks:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Enable corepack for node package managers
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Run tests
+        env:
+          CI: true
+        run: yarn test:coverage --runInBand --forceExit --verbose
+      
+      - name: Run coveralls
+        run: cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
+  
+      - name: Check formatting
+        run: yarn lint
+
+      # Ensure no vulnerable dependencies (optional)
+      - name: Audit dependencies
+        run: yarn audit --level moderate
