@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redeclare */
 /* eslint-disable @typescript-eslint/naming-convention */
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -84,3 +85,7 @@ export const EXPRESS_OPENSRP_SCOPES = (process.env.EXPRESS_OPENSRP_SCOPES || 'op
 export const { EXPRESS_OPENSRP_SERVER_URL } = process.env;
 
 export const EXPRESS_TEMP_CSV_FILE_STORAGE = process.env.EXPRESS_TEMP_CSV_FILE_STORAGE || '/tmp/csvUploads';
+
+export const EXPRESS_PYTHON_INTERPRETER_PATH = process.env.EXPRESS_PYTHON_INTERPRETER_PATH || 'python';
+
+export const EXPRESS_BULK_UPLOAD_REDIS_QUEUE = process.env.EXPRESS_BULK_UPLOAD_REDIS_QUEUE || randomUUID();

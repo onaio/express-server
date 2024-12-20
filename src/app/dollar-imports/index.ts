@@ -6,9 +6,17 @@ import { mkdir } from 'fs/promises';
 import AdmZip from 'adm-zip';
 import { randomUUID } from 'crypto';
 import { Job as BullJob } from 'bull';
-import { getImportQueue, BullQ } from './queue';
-import { getAllTemplateFilePaths, getTemplateFilePath, parseJobResponse, UploadWorkflowTypes } from './utils';
-import { redisRequiredMiddleWare, sessionChecker, writeImporterConfigMiddleware } from './middleware';
+import { getImportQueue, BullQ } from './helpers/queue';
+import {
+  getAllTemplateFilePaths,
+  getTemplateFilePath,
+  JobData,
+  parseJobResponse,
+  StrPartsSep,
+  UploadWorkflowTypes,
+  validateWorkflowArgs,
+} from './helpers/utils';
+import { importRouterErrorhandler, redisRequiredMiddleWare, sessionChecker } from './helpers/middleware';
 import { A_DAY } from '../../constants';
 import { EXPRESS_TEMP_CSV_FILE_STORAGE } from '../../configs/envs';
 
@@ -17,7 +25,7 @@ const importQ = getImportQueue() as BullQ;
 
 const storage = multer.diskStorage({
   async destination(_, __, cb) {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const uniqueSuffix = `${Date.now()}`;
     const folderPath = `${EXPRESS_TEMP_CSV_FILE_STORAGE}/${uniqueSuffix}`;
     if (!fs.existsSync(folderPath)) {
       await mkdir(folderPath, { recursive: true });
@@ -25,12 +33,14 @@ const storage = multer.diskStorage({
     cb(null, folderPath);
   },
   filename(req, file, cb) {
-    cb(null, file.originalname);
+    const newFileName = `${Math.round(Math.random() * 1e9)}${StrPartsSep}${file.originalname}`;
+    cb(null, newFileName);
   },
 });
 
 const upload = multer({ storage });
 
+importerRouter.use(sessionChecker);
 importerRouter.use(redisRequiredMiddleWare);
 
 importerRouter.get('/', sessionChecker, async (req, res) => {
@@ -45,7 +55,7 @@ importerRouter.get('/', sessionChecker, async (req, res) => {
   );
 });
 
-importerRouter.get('/templates', sessionChecker, async (req, res) => {
+importerRouter.get('/templates', async (req, res) => {
   const uploadCodeTemplate = req.query.resourceTemplate;
 
   if (typeof uploadCodeTemplate === 'string') {
@@ -77,7 +87,7 @@ importerRouter.get('/templates', sessionChecker, async (req, res) => {
   }
 });
 
-importerRouter.get('/:slug', sessionChecker, async (req, res) => {
+importerRouter.get('/:slug', async (req, res) => {
   const wkFlowId = req.params.slug;
 
   const job = await importQ.getJob(wkFlowId);
@@ -86,26 +96,40 @@ importerRouter.get('/:slug', sessionChecker, async (req, res) => {
     res.json(rtnVal);
     return;
   }
-  res.status(401).send({ message: `Workflow with id ${wkFlowId} was not found` });
+  res.status(404).send({ message: `Workflow with id ${wkFlowId} was not found` });
 });
 
-importerRouter.post('/', sessionChecker, writeImporterConfigMiddleware, upload.any(), async (req, res) => {
+importerRouter.post('/', upload.any(), async (req, res, next) => {
   const files = req.files as Express.Multer.File[] | undefined;
   const user = req.session.preloadedState?.session?.user?.username;
 
+  const { productListId, inventoryListId } = req.query;
+
   const uploadId = randomUUID();
-  const workflowArgs = files?.map((file) => {
-    const jobId = `${uploadId}_${file.fieldname}`;
-    return {
-      workflowType: file.fieldname,
-      filePath: file.path,
-      workflowId: jobId,
-      author: user,
-    };
-  });
+  const workflowArgs =
+    files?.map((file) => {
+      const jobId = `${uploadId}_${file.fieldname}`;
+      return {
+        workflowType: file.fieldname,
+        filePath: file.path,
+        workflowId: jobId,
+        author: user,
+        accessToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token,
+        refreshToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token,
+        productListId,
+        inventoryListId,
+      } as JobData;
+    }) ?? [];
+
+  try {
+    validateWorkflowArgs(workflowArgs);
+  } catch (err) {
+    next(err);
+    return;
+  }
 
   const addedJobs: BullJob[] = await Promise.all(
-    (workflowArgs ?? []).map((arg) =>
+    workflowArgs.map((arg) =>
       importQ.add(arg, {
         jobId: arg.workflowId,
         removeOnComplete: { age: A_DAY },
@@ -123,5 +147,7 @@ importerRouter.post('/', sessionChecker, writeImporterConfigMiddleware, upload.a
     }),
   );
 });
+
+importerRouter.use(importRouterErrorhandler);
 
 export { importerRouter };

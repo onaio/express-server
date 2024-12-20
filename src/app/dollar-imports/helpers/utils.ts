@@ -1,8 +1,9 @@
 import path from 'path';
 import { Job as BullJob } from 'bull';
 
-export const importerSourceFilePath = path.resolve(__dirname, '../../../importer');
+export const importerSourceFilePath = path.resolve(__dirname, '../../../../importer');
 export const templatesFolder = path.resolve(importerSourceFilePath, 'csv');
+export const StrPartsSep = '-';
 
 export enum UploadWorkflowTypes {
   Locations = 'locations',
@@ -13,6 +14,17 @@ export enum UploadWorkflowTypes {
   CareTeams = 'careTeams',
   orgToLocationAssignment = 'orgToLocationAssignment',
   userToOrganizationAssignment = 'userToOrganizationAssignment',
+}
+
+export interface JobData {
+  workflowType: UploadWorkflowTypes;
+  filePath: string;
+  workflowId: string;
+  author: string;
+  accessToken: string;
+  refreshToken: string;
+  productListId?: string;
+  inventoryListId?: string;
 }
 
 export const resourceUploadCodeToTemplatePathLookup = {
@@ -53,7 +65,9 @@ export async function parseJobResponse(job: BullJob) {
   const status = await job.getState();
   const jobData = job.data;
   const { workflowType, filePath, author } = jobData;
-  const filename = filePath ? path.posix.basename(filePath) : '';
+  const internalFilename = filePath ? path.posix.basename(filePath) : '';
+  const splitFileName = internalFilename.split(StrPartsSep);
+  const normalizedFilename = splitFileName[splitFileName.length - 1];
 
   let statusReason;
   if (status === 'failed') {
@@ -74,7 +88,8 @@ export async function parseJobResponse(job: BullJob) {
     dateStarted: job.processedOn,
     dateEnded: job.finishedOn,
     statusReason,
-    filename,
+    filename: normalizedFilename,
+    internalFilename,
     author,
   };
 }
@@ -88,3 +103,18 @@ export const dependencyGraph: DependencyGraph = {
   [UploadWorkflowTypes.userToOrganizationAssignment]: [UploadWorkflowTypes.Users, UploadWorkflowTypes.Organizations],
   [UploadWorkflowTypes.Inventories]: [UploadWorkflowTypes.Products],
 };
+
+/** validates workflow arguments
+ *
+ * @param args - args for initiating a bull job.
+ */
+export function validateWorkflowArgs(args: JobData[]) {
+  for (const arg of args) {
+    if (arg.workflowType === UploadWorkflowTypes.Products && !arg.productListId) {
+      throw new Error('Product list id for the product upload workflow was not provided');
+    }
+    if (arg.workflowType === UploadWorkflowTypes.Inventories && !arg.inventoryListId) {
+      throw new Error('inventory list id for the inventory upload workflow was not provided');
+    }
+  }
+}
