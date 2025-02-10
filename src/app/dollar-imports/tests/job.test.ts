@@ -12,7 +12,6 @@ test('generates correct script args for the different workflows', () => {
     workflowType: UploadWorkflowTypes.Locations,
     filePath: sampleCsv,
     productListId: 'productId',
-    inventoryListId: 'inventoryId',
     workflowId: 'id',
     author: 'JK Rowling',
     accessToken: 'at',
@@ -60,14 +59,5 @@ test('generates correct script args for the different workflows', () => {
     'info',
   ]);
   result = getImportScriptArgs({ ...commonWorkflowArgs, workflowType: UploadWorkflowTypes.Inventories });
-  expect(result).toEqual([
-    '--csv_file',
-    `"${sampleCsv}"`,
-    '--setup',
-    'inventories',
-    '--list_resource_id',
-    'inventoryId',
-    '--log_level',
-    'info',
-  ]);
+  expect(result).toEqual(['--csv_file', `"${sampleCsv}"`, '--setup', 'inventories', '--log_level', 'info']);
 });

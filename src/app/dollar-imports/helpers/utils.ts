@@ -24,7 +24,6 @@ export interface JobData {
   accessToken: string;
   refreshToken: string;
   productListId?: string;
-  inventoryListId?: string;
 }
 
 export const resourceUploadCodeToTemplatePathLookup = {
@@ -112,9 +111,6 @@ export function validateWorkflowArgs(args: JobData[]) {
   for (const arg of args) {
     if (arg.workflowType === UploadWorkflowTypes.Products && !arg.productListId) {
       throw new Error('Product list id for the product upload workflow was not provided');
-    }
-    if (arg.workflowType === UploadWorkflowTypes.Inventories && !arg.inventoryListId) {
-      throw new Error('inventory list id for the inventory upload workflow was not provided');
     }
   }
 }

@@ -11,7 +11,7 @@ import { realm, keycloakBaseUrl } from '../../helpers/utils';
 import { winstonLogger } from '../../../configs/winston';
 
 export function getImportScriptArgs(jobData: JobData) {
-  const { workflowType, filePath: rawFilePath, productListId, inventoryListId } = jobData;
+  const { workflowType, filePath: rawFilePath, productListId } = jobData;
   const filePath = `"${rawFilePath}"`;
   const commonFlags = ['--log_level', 'info'];
   switch (workflowType) {
@@ -39,15 +39,7 @@ export function getImportScriptArgs(jobData: JobData) {
     case UploadWorkflowTypes.Products:
       return ['--csv_file', filePath, '--setup', 'products', '--list_resource_id', `${productListId}`, ...commonFlags];
     case UploadWorkflowTypes.Inventories:
-      return [
-        '--csv_file',
-        filePath,
-        '--setup',
-        'inventories',
-        '--list_resource_id',
-        `${inventoryListId}`,
-        ...commonFlags,
-      ];
+      return ['--csv_file', filePath, '--setup', 'inventories', ...commonFlags];
     default:
       return [];
   }
