@@ -103,7 +103,7 @@ importerRouter.post('/', upload.any(), async (req, res, next) => {
   const files = req.files as Express.Multer.File[] | undefined;
   const user = req.session.preloadedState?.session?.user?.username;
 
-  const { productListId, inventoryListId } = req.query;
+  const { productListId } = req.query;
 
   const uploadId = randomUUID();
   const workflowArgs =
@@ -117,7 +117,6 @@ importerRouter.post('/', upload.any(), async (req, res, next) => {
         accessToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.access_token,
         refreshToken: req.session.preloadedState?.session?.extraData?.oAuth2Data?.refresh_token,
         productListId,
-        inventoryListId,
       } as JobData;
     }) ?? [];
 
